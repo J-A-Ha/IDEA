@@ -79,7 +79,7 @@ IDEA is a toolkit for conducting investigations using data. It is written in Pyt
 
 ### **Installation**
 
-To download from GitHub, run the following code in your command interface:
+To download from GitHub, run the following code in your console:
 ```bash
 gh repo clone J-A-Ha/IDEA
 cd IDEA
@@ -311,43 +311,6 @@ An object which stores details about a digital file associated with a case or pi
 
 For the full documentation, click [here](./docs/html/index.html).
 
-### **Dependencies**
-
-Python packages and modules:
-* NumPy
-* SciPy
-* Pandas
-* NLTK
-* matplotlib
-* geopy
-* geocoder
-* python-whois
-* ipwhois
-* igraph
-* NetworkX
-* mpl-tools
-* PyPDF2
-* requests
-* beautifulsoup4
-* requests-html
-* scikit-learn
-* Levenshtein
-* wayback
-* htmldate
-* selectolax
-* Pillow
-* sewar
-* trafilatura
-* rpy2
-* courlan
-* comcrawl
-* Sherlock
-* Shodan
-* Instaloader
-* Cloudscraper
-
-R libraries:
-* ERGM
 
 
 ## **Contributing**
