@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.socmed package &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ida.socmed.sherlock package" href="ida.socmed.sherlock.html" />
+    <link rel="prev" title="ida.networks package" href="ida.networks.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">ida</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ida.html">ida package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="ida.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="ida.audiovisual.html">ida.audiovisual package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.casemanager.html">ida.casemanager package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.core.html">ida.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.datasets.html">ida.datasets package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.exporters.html">ida.exporters package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.importers.html">ida.importers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.internet.html">ida.internet package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.location.html">ida.location package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.modelling.html">ida.modelling package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.networks.html">ida.networks package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">ida.socmed package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.text.html">ida.text package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.visualisation.html">ida.visualisation package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ida.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ida.html#ida-devtools-module">ida.devtools module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ida.html#module-ida">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">ida</a></li>
+          <li class="breadcrumb-item"><a href="ida.html">ida package</a></li>
+      <li class="breadcrumb-item active">ida.socmed package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ida.socmed.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ida-socmed-package">
+<h1>ida.socmed package<a class="headerlink" href="#ida-socmed-package" title="Permalink to this heading"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ida.socmed.sherlock.html">ida.socmed.sherlock package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ida.socmed.sherlock.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ida.socmed.sherlock.tests.html">ida.socmed.sherlock.tests package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ida.socmed.sherlock.tests.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.socmed.sherlock.tests.html#ida-socmed-sherlock-tests-all-module">ida.socmed.sherlock.tests.all module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.socmed.sherlock.tests.html#ida-socmed-sherlock-tests-base-module">ida.socmed.sherlock.tests.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.socmed.sherlock.tests.html#ida-socmed-sherlock-tests-test-multiple-usernames-module">ida.socmed.sherlock.tests.test_multiple_usernames module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.socmed.sherlock.tests.html#module-ida.socmed.sherlock.tests">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ida.socmed.sherlock.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ida.socmed.sherlock.html#module-ida.socmed.sherlock.notify">ida.socmed.sherlock.notify module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ida.socmed.sherlock.html#module-ida.socmed.sherlock.result">ida.socmed.sherlock.result module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ida.socmed.sherlock.html#module-ida.socmed.sherlock.sherlock">ida.socmed.sherlock.sherlock module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ida.socmed.sherlock.html#module-ida.socmed.sherlock.sites">ida.socmed.sherlock.sites module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ida.socmed.sherlock.html#module-ida.socmed.sherlock">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-ida.socmed.4chan">
+<span id="ida-socmed-4chan-module"></span><h2>ida.socmed.4chan module<a class="headerlink" href="#module-ida.socmed.4chan" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-ida.socmed.activitypub">
+<span id="ida-socmed-activitypub-module"></span><h2>ida.socmed.activitypub module<a class="headerlink" href="#module-ida.socmed.activitypub" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-ida.socmed.atprotocol">
+<span id="ida-socmed-atprotocol-module"></span><h2>ida.socmed.atprotocol module<a class="headerlink" href="#module-ida.socmed.atprotocol" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-ida.socmed.bluesky">
+<span id="ida-socmed-bluesky-module"></span><h2>ida.socmed.bluesky module<a class="headerlink" href="#module-ida.socmed.bluesky" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-ida.socmed.instagram">
+<span id="ida-socmed-instagram-module"></span><h2>ida.socmed.instagram module<a class="headerlink" href="#module-ida.socmed.instagram" title="Permalink to this heading"></a></h2>
+<p>Functions for interacting with Instagram.</p>
+<p class="rubric">Notes</p>
+<p>See <a class="reference external" href="https://instaloader.github.io/as-module.html">https://instaloader.github.io/as-module.html</a>.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.instagram.download_user_posts">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.instagram.</span></span><span class="sig-name descname"><span class="pre">download_user_posts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'request_input'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/instagram.html#download_user_posts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.instagram.download_user_posts" title="Permalink to this definition"></a></dt>
+<dd><p>Downloads all Instagram posts for given username.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>username</strong> (<em>str</em>) – Instagram username to fetch posts from. Defaults to requesting from user input.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.instagram.fetch_profile">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.instagram.</span></span><span class="sig-name descname"><span class="pre">fetch_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'request_input'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/instagram.html#fetch_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.instagram.fetch_profile" title="Permalink to this definition"></a></dt>
+<dd><p>Retrieves Instagram profile for given username.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>username</strong> (<em>str</em>) – Instagram username to fetch profile from. Defaults to requesting from user input.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>profile</strong> – The Instaloader Profile object associated with the username.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>instaloader.Profile</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.instagram.fetch_user">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.instagram.</span></span><span class="sig-name descname"><span class="pre">fetch_user</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'request_input'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/instagram.html#fetch_user"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.instagram.fetch_user" title="Permalink to this definition"></a></dt>
+<dd><p>Retrieves Instagram profile for given username.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>username</strong> (<em>str</em>) – Instagram username to fetch profile from. Defaults to requesting from user input.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>profile</strong> – The Instaloader Profile object associated with the username.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>instaloader.Profile</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.instagram.fetch_user_posts">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.instagram.</span></span><span class="sig-name descname"><span class="pre">fetch_user_posts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'request_input'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/instagram.html#fetch_user_posts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.instagram.fetch_user_posts" title="Permalink to this definition"></a></dt>
+<dd><p>Retrieves all Instagram posts for given username.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>username</strong> (<em>str</em>) – Instagram username to fetch posts from. Defaults to requesting from user input.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>posts</strong> – The posts associated with the username.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.instagram.get_user_posts_dict">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.instagram.</span></span><span class="sig-name descname"><span class="pre">get_user_posts_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'request_input'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/instagram.html#get_user_posts_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.instagram.get_user_posts_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Retrieves all Instagram posts for given username and returns a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>username</strong> (<em>str:</em>) – The username to retrieve posts from. Defaults to requesting from user input.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – Posts and their metadata.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.instagram.init_session">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.instagram.</span></span><span class="sig-name descname"><span class="pre">init_session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">login</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/instagram.html#init_session"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.instagram.init_session" title="Permalink to this definition"></a></dt>
+<dd><p>Initialises Instagram session as variable in the global environment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>login</strong> (<em>bool</em><em>, </em><em>default : False</em>) – whether to login to Instagram. Defaults to False.</p></li>
+<li><p><strong>username</strong> (<em>str</em>) – Instagram username for login. Defaults to requesting from user input.</p></li>
+<li><p><strong>password</strong> (<em>str</em>) – Instagram password for login. Defaults to requesting from user input.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.instagram.save_user_posts_json">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.instagram.</span></span><span class="sig-name descname"><span class="pre">save_user_posts_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder_address</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'request_input'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/instagram.html#save_user_posts_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.instagram.save_user_posts_json" title="Permalink to this definition"></a></dt>
+<dd><p>Saves all Instagram posts for given username as a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> (<em>str</em>) – Instagram username to fetch posts from. Defaults to requesting from user input.</p></li>
+<li><p><strong>folder_address</strong> (<em>str</em>) – Directory path of folder to save to. Defaults to requesting from user input.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.instagram.set_login">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.instagram.</span></span><span class="sig-name descname"><span class="pre">set_login</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'request_input'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/instagram.html#set_login"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.instagram.set_login" title="Permalink to this definition"></a></dt>
+<dd><p>Initialises Instagram login as variable in the global environment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> (<em>str</em>) – Instagram username for login. Defaults to requesting from user input.</p></li>
+<li><p><strong>password</strong> (<em>str</em>) – Instagram password for login. Defaults to requesting from user input.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-ida.socmed.linkedin">
+<span id="ida-socmed-linkedin-module"></span><h2>ida.socmed.linkedin module<a class="headerlink" href="#module-ida.socmed.linkedin" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-ida.socmed.mastodon">
+<span id="ida-socmed-mastodon-module"></span><h2>ida.socmed.mastodon module<a class="headerlink" href="#module-ida.socmed.mastodon" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-ida.socmed.reddit">
+<span id="ida-socmed-reddit-module"></span><h2>ida.socmed.reddit module<a class="headerlink" href="#module-ida.socmed.reddit" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-ida.socmed.sherlock_interpreter">
+<span id="ida-socmed-sherlock-interpreter-module"></span><h2>ida.socmed.sherlock_interpreter module<a class="headerlink" href="#module-ida.socmed.sherlock_interpreter" title="Permalink to this heading"></a></h2>
+<p>Functions for interacting with the Sherlock module using the Python interpreter.</p>
+<p>Developed by making edits to the sherlock.main() function.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.sherlock_interpreter.search_username">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock_interpreter.</span></span><span class="sig-name descname"><span class="pre">search_username</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sites_json</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsfw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique_tor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">browse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dataframe'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock_interpreter.html#search_username"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock_interpreter.search_username" title="Permalink to this definition"></a></dt>
+<dd><p>Runs a Sherlock search for a username.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> (<em>str</em>) – username to search for.</p></li>
+<li><p><strong>site_list</strong> (<em>list</em>) – list of sites to search.</p></li>
+<li><p><strong>sites_json</strong> (<em>str</em>) – JSON of site data.</p></li>
+<li><p><strong>nsfw</strong> (<em>bool</em>) – whether to include NSFW websites in result.</p></li>
+<li><p><strong>tor</strong> (<em>str</em>) – Tor node to route search through.</p></li>
+<li><p><strong>unique_tor</strong> (<em>bool</em>) – whether to use a unique Tor instance.</p></li>
+<li><p><strong>proxy</strong> (<em>str</em>) – proxy to route search through.</p></li>
+<li><p><strong>timeout</strong> (<em>int</em>) – length of time to wait before timeout.</p></li>
+<li><p><strong>browse</strong> (<em>bool</em>) – whether to open results in browser.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – whether to return verbose output.</p></li>
+<li><p><strong>print_all</strong> (<em>bool</em>) – whether to print all results, including failed results.</p></li>
+<li><p><strong>output</strong> (<em>str</em>) – type of data format to output. Defaults to dataframe.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a set of usernames found by Sherlock.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>result</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-ida.socmed.telegram">
+<span id="ida-socmed-telegram-module"></span><h2>ida.socmed.telegram module<a class="headerlink" href="#module-ida.socmed.telegram" title="Permalink to this heading"></a></h2>
+<p>Telegram analysis tools</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.telegram.geolocate_telegram">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.telegram.</span></span><span class="sig-name descname"><span class="pre">geolocate_telegram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default_case'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">append_to_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/telegram.html#geolocate_telegram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.telegram.geolocate_telegram" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-ida.socmed.telgeo">
+<span id="ida-socmed-telgeo-module"></span><h2>ida.socmed.telgeo module<a class="headerlink" href="#module-ida.socmed.telgeo" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.telgeo.process_telegram_data">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.telgeo.</span></span><span class="sig-name descname"><span class="pre">process_telegram_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">post_link_base</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/telgeo.html#process_telegram_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.telgeo.process_telegram_data" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-ida.socmed.youtube">
+<span id="ida-socmed-youtube-module"></span><h2>ida.socmed.youtube module<a class="headerlink" href="#module-ida.socmed.youtube" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ida.socmed.youtube.MyLogger">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ida.socmed.youtube.</span></span><span class="sig-name descname"><span class="pre">MyLogger</span></span><a class="reference internal" href="_modules/ida/socmed/youtube.html#MyLogger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.youtube.MyLogger" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ida.socmed.youtube.MyLogger.debug">
+<span class="sig-name descname"><span class="pre">debug</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/youtube.html#MyLogger.debug"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.youtube.MyLogger.debug" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ida.socmed.youtube.MyLogger.error">
+<span class="sig-name descname"><span class="pre">error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/youtube.html#MyLogger.error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.youtube.MyLogger.error" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ida.socmed.youtube.MyLogger.warning">
+<span class="sig-name descname"><span class="pre">warning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/youtube.html#MyLogger.warning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.youtube.MyLogger.warning" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.youtube.download_comments">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.youtube.</span></span><span class="sig-name descname"><span class="pre">download_comments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">urls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort_by</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'most_popular'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dataframe'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/youtube.html#download_comments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.youtube.download_comments" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.youtube.download_video">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.youtube.</span></span><span class="sig-name descname"><span class="pre">download_video</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">urls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/youtube.html#download_video"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.youtube.download_video" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.youtube.get_info">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.youtube.</span></span><span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">urls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/youtube.html#get_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.youtube.get_info" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.youtube.my_hook">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.youtube.</span></span><span class="sig-name descname"><span class="pre">my_hook</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/youtube.html#my_hook"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.youtube.my_hook" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-ida.socmed">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ida.socmed" title="Permalink to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ida.networks.html" class="btn btn-neutral float-left" title="ida.networks package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ida.socmed.sherlock.html" class="btn btn-neutral float-right" title="ida.socmed.sherlock package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

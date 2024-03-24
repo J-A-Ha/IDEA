@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.location package &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ida.modelling package" href="ida.modelling.html" />
+    <link rel="prev" title="ida.internet package" href="ida.internet.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">ida</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ida.html">ida package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="ida.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="ida.audiovisual.html">ida.audiovisual package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.casemanager.html">ida.casemanager package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.core.html">ida.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.datasets.html">ida.datasets package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.exporters.html">ida.exporters package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.importers.html">ida.importers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.internet.html">ida.internet package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">ida.location package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.modelling.html">ida.modelling package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.networks.html">ida.networks package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.socmed.html">ida.socmed package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.text.html">ida.text package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.visualisation.html">ida.visualisation package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ida.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ida.html#ida-devtools-module">ida.devtools module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ida.html#module-ida">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">ida</a></li>
+          <li class="breadcrumb-item"><a href="ida.html">ida package</a></li>
+      <li class="breadcrumb-item active">ida.location package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ida.location.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ida-location-package">
+<h1>ida.location package<a class="headerlink" href="#ida-location-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-ida.location.astronomy">
+<span id="ida-location-astronomy-module"></span><h2>ida.location.astronomy module<a class="headerlink" href="#module-ida.location.astronomy" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-ida.location.chronolocation">
+<span id="ida-location-chronolocation-module"></span><h2>ida.location.chronolocation module<a class="headerlink" href="#module-ida.location.chronolocation" title="Permalink to this heading"></a></h2>
+<p>Functions for analysing dates and times</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.chronolocation.datetime_to_years_decimal">
+<span class="sig-prename descclassname"><span class="pre">ida.location.chronolocation.</span></span><span class="sig-name descname"><span class="pre">datetime_to_years_decimal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/ida/location/chronolocation.html#datetime_to_years_decimal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.chronolocation.datetime_to_years_decimal" title="Permalink to this definition"></a></dt>
+<dd><p>Converts datetime to a year with a decimal representing the number of additional days.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>date</strong> (<em>str</em><em> or </em><em>datetime.datetime</em>) – date as a string or datetime object.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – the datetime as a year with a decimal representing the number of additional days.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.chronolocation.normalised_time_difference">
+<span class="sig-prename descclassname"><span class="pre">ida.location.chronolocation.</span></span><span class="sig-name descname"><span class="pre">normalised_time_difference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first_datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'days'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/ida/location/chronolocation.html#normalised_time_difference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.chronolocation.normalised_time_difference" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the normalised time difference for two dates/times.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>first_datetime</strong> (<em>str</em><em> or </em><em>datetime.datetime</em>) – first date for comparison as a string or datetime object.</p></li>
+<li><p><strong>second_datetime</strong> (<em>str</em><em> or </em><em>datetime.datetime</em>) – second date for comparison as a string or datetime object.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – units for time difference calculation. Defaults to ‘days’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – a value between 0 and 1, where 0 is 0 time difference and 1 is infinity.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Normalisation function: map_inf_to_1()</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.chronolocation.normalised_time_difference_inverse">
+<span class="sig-prename descclassname"><span class="pre">ida.location.chronolocation.</span></span><span class="sig-name descname"><span class="pre">normalised_time_difference_inverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first_datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'days'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/ida/location/chronolocation.html#normalised_time_difference_inverse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.chronolocation.normalised_time_difference_inverse" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the inverse of the normalised distance between two coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>first_datetime</strong> (<em>str</em><em> or </em><em>datetime.datetime</em>) – first date for comparison as a string or datetime object.</p></li>
+<li><p><strong>second_datetime</strong> (<em>str</em><em> or </em><em>datetime.datetime</em>) – second date for comparison as a string or datetime object.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – units for time difference calculation. Defaults to ‘days’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – a value between 0 and 1, where 1 is 0 distance and 0 is infinity.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Normalisation function: map_inf_to_0()</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.chronolocation.time_difference">
+<span class="sig-prename descclassname"><span class="pre">ida.location.chronolocation.</span></span><span class="sig-name descname"><span class="pre">time_difference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">timedelta</span></span></span><a class="reference internal" href="_modules/ida/location/chronolocation.html#time_difference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.chronolocation.time_difference" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the time difference between two datetimes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>first_date</strong> (<em>str</em><em> or </em><em>datetime.datetime</em>) – first date for comparison as a string or datetime object. Defaults to requesting from user input.</p></li>
+<li><p><strong>second_date</strong> (<em>str</em><em> or </em><em>datetime.datetime</em>) – second date for comparison as a string or datetime object. Defaults to requesting from user input.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>time_difference</strong> – the time difference between the inputted dates.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>datetime.timedelta</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.chronolocation.timedelta_to_days">
+<span class="sig-prename descclassname"><span class="pre">ida.location.chronolocation.</span></span><span class="sig-name descname"><span class="pre">timedelta_to_days</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timedelta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/location/chronolocation.html#timedelta_to_days"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.chronolocation.timedelta_to_days" title="Permalink to this definition"></a></dt>
+<dd><p>Converts datetime timedelta object to a number of days with a decimal remainder.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.chronolocation.timedelta_to_hours">
+<span class="sig-prename descclassname"><span class="pre">ida.location.chronolocation.</span></span><span class="sig-name descname"><span class="pre">timedelta_to_hours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timedelta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/location/chronolocation.html#timedelta_to_hours"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.chronolocation.timedelta_to_hours" title="Permalink to this definition"></a></dt>
+<dd><p>Converts datetime timedelta object to a number of hours with a decimal remainder.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.chronolocation.timedelta_to_mins">
+<span class="sig-prename descclassname"><span class="pre">ida.location.chronolocation.</span></span><span class="sig-name descname"><span class="pre">timedelta_to_mins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timedelta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/location/chronolocation.html#timedelta_to_mins"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.chronolocation.timedelta_to_mins" title="Permalink to this definition"></a></dt>
+<dd><p>Converts datetime timedelta object to a number of minutes with a decimal remainder.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.chronolocation.timedelta_to_secs">
+<span class="sig-prename descclassname"><span class="pre">ida.location.chronolocation.</span></span><span class="sig-name descname"><span class="pre">timedelta_to_secs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timedelta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/location/chronolocation.html#timedelta_to_secs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.chronolocation.timedelta_to_secs" title="Permalink to this definition"></a></dt>
+<dd><p>Converts datetime timedelta object to a number of seconds with a decimal remainder.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.chronolocation.timedelta_to_weeks">
+<span class="sig-prename descclassname"><span class="pre">ida.location.chronolocation.</span></span><span class="sig-name descname"><span class="pre">timedelta_to_weeks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timedelta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/location/chronolocation.html#timedelta_to_weeks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.chronolocation.timedelta_to_weeks" title="Permalink to this definition"></a></dt>
+<dd><p>Converts datetime timedelta object to a number of weeks with a decimal remainder.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.chronolocation.years_decimal_timedelta">
+<span class="sig-prename descclassname"><span class="pre">ida.location.chronolocation.</span></span><span class="sig-name descname"><span class="pre">years_decimal_timedelta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/location/chronolocation.html#years_decimal_timedelta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.chronolocation.years_decimal_timedelta" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the number of years separating two datetimes as a float.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>first_date</strong> (<em>str</em><em> or </em><em>datetime.datetime</em>) – first date for comparison as a string or datetime object. Defaults to requesting from user input.</p></li>
+<li><p><strong>second_date</strong> (<em>str</em><em> or </em><em>datetime.datetime</em>) – second date for comparison as a string or datetime object. Defaults to requesting from user input.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – the time difference in years with a decimal representing the number of additional days.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.chronolocation.years_difference">
+<span class="sig-prename descclassname"><span class="pre">ida.location.chronolocation.</span></span><span class="sig-name descname"><span class="pre">years_difference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/location/chronolocation.html#years_difference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.chronolocation.years_difference" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the number of years separating two datetimes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>first_date</strong> (<em>str</em><em> or </em><em>datetime.datetime</em>) – first date for comparison as a string or datetime object. Defaults to requesting from user input.</p></li>
+<li><p><strong>second_date</strong> (<em>str</em><em> or </em><em>datetime.datetime</em>) – second date for comparison as a string or datetime object. Defaults to requesting from user input.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>time_difference</strong> – the time difference in years between the inputted dates.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>datetime.timedelta</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-ida.location.geolocation">
+<span id="ida-location-geolocation-module"></span><h2>ida.location.geolocation module<a class="headerlink" href="#module-ida.location.geolocation" title="Permalink to this heading"></a></h2>
+<p>Functions for geolocation analysis</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.geolocation.coordinates_distance">
+<span class="sig-prename descclassname"><span class="pre">ida.location.geolocation.</span></span><span class="sig-name descname"><span class="pre">coordinates_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first_coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'kilometers'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="_modules/ida/location/geolocation.html#coordinates_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.geolocation.coordinates_distance" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the distance between two coordinates in units provided by user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>first_coordinates</strong> (<em>str</em><em> or </em><em>list</em>) – the first set of coordinates for comparison.</p></li>
+<li><p><strong>second_coordinates</strong> (<em>str</em><em> or </em><em>list</em>) – the second set of coordinates for comparison.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – units to use for distance calculation. Defaults to ‘kilometers’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – a tuple containing the distance and its units.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.geolocation.get_coordinates_geocode">
+<span class="sig-prename descclassname"><span class="pre">ida.location.geolocation.</span></span><span class="sig-name descname"><span class="pre">get_coordinates_geocode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latitude</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longitude</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Location</span></span></span><a class="reference internal" href="_modules/ida/location/geolocation.html#get_coordinates_geocode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.geolocation.get_coordinates_geocode" title="Permalink to this definition"></a></dt>
+<dd><p>Takes co-ordinate as a string and returns its associated geocode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coordinates</strong> (<em>list</em><em> or </em><em>str</em><em>, </em><em>default : None</em>) – list or string of coordinates to use. Defaults to None.</p></li>
+<li><p><strong>latitude</strong> (<em>str</em>) – if no list or string of coordinates given, requests for latitude.</p></li>
+<li><p><strong>longitude</strong> (<em>str</em>) – if no list or string of coordinates given, requests for longitude.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – a geopy geocode.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>geopy.location.Location</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.geolocation.get_coordinates_location">
+<span class="sig-prename descclassname"><span class="pre">ida.location.geolocation.</span></span><span class="sig-name descname"><span class="pre">get_coordinates_location</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latitude</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longitude</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/ida/location/geolocation.html#get_coordinates_location"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.geolocation.get_coordinates_location" title="Permalink to this definition"></a></dt>
+<dd><p>Takes coordinates and returns the location associated by Geopy’s geocoder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coordinates</strong> (<em>list</em><em> or </em><em>str</em><em>, </em><em>default : None</em>) – list or string of coordinates to use. Defaults to None.</p></li>
+<li><p><strong>latitude</strong> (<em>str</em>) – if no list or string of coordinates given, requests for latitude.</p></li>
+<li><p><strong>longitude</strong> (<em>str</em>) – if no list or string of coordinates given, requests for longitude.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – an address or location name associated with the inputted coordinates.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.geolocation.get_location_address">
+<span class="sig-prename descclassname"><span class="pre">ida.location.geolocation.</span></span><span class="sig-name descname"><span class="pre">get_location_address</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/ida/location/geolocation.html#get_location_address"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.geolocation.get_location_address" title="Permalink to this definition"></a></dt>
+<dd><p>Takes location details and returns the address associated by Geopy’s geocoder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>location</strong> (<em>str</em>) – a location name. Defaults to requesting from user input.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – an address associated with the inputted location name.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.geolocation.get_location_coordinates">
+<span class="sig-prename descclassname"><span class="pre">ida.location.geolocation.</span></span><span class="sig-name descname"><span class="pre">get_location_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/ida/location/geolocation.html#get_location_coordinates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.geolocation.get_location_coordinates" title="Permalink to this definition"></a></dt>
+<dd><p>Takes location details and returns the coordinates associated by Geopy’s geocoder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>location</strong> (<em>str</em>) – an address or location name. Defaults to requesting from user input.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – list of coordinates associated with the inputted coordinates.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.geolocation.get_location_geocode">
+<span class="sig-prename descclassname"><span class="pre">ida.location.geolocation.</span></span><span class="sig-name descname"><span class="pre">get_location_geocode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Location</span></span></span><a class="reference internal" href="_modules/ida/location/geolocation.html#get_location_geocode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.geolocation.get_location_geocode" title="Permalink to this definition"></a></dt>
+<dd><p>Takes location as a string and returns its associated Geopy geocode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>location</strong> (<em>str</em>) – an address or location name. Defaults to requesting from user input.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – a geopy geocode.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>geopy.location.Location</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.geolocation.locations_distance">
+<span class="sig-prename descclassname"><span class="pre">ida.location.geolocation.</span></span><span class="sig-name descname"><span class="pre">locations_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'kilometers'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="_modules/ida/location/geolocation.html#locations_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.geolocation.locations_distance" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the distance between two coordinates, using units provided by user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>first_location</strong> (<em>str</em>) – the first location name or address for comparison.</p></li>
+<li><p><strong>second_location</strong> (<em>str</em>) – the second location name or address for comparison.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – units to use for distance calculation. Defaults to ‘kilometers’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – a tuple containing the distance and its units.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.geolocation.lookup_coordinates">
+<span class="sig-prename descclassname"><span class="pre">ida.location.geolocation.</span></span><span class="sig-name descname"><span class="pre">lookup_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latitude</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longitude</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Google</span> <span class="pre">Maps'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/location/geolocation.html#lookup_coordinates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.geolocation.lookup_coordinates" title="Permalink to this definition"></a></dt>
+<dd><p>Searches for coordinates on inputted mapping platform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coordinates</strong> (<em>list</em><em> or </em><em>str</em><em>, </em><em>default : None</em>) – list or string of coordinates to use. Defaults to None.</p></li>
+<li><p><strong>latitude</strong> (<em>str</em>) – if no list or string of coordinates given, requests for latitude.</p></li>
+<li><p><strong>longitude</strong> (<em>str</em>) – if no list or string of coordinates given, requests for longitude.</p></li>
+<li><p><strong>site</strong> (<em>str</em>) – name of mapping platform to use to lookup coordinates. Defaults to ‘Google Maps’.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.geolocation.lookup_location">
+<span class="sig-prename descclassname"><span class="pre">ida.location.geolocation.</span></span><span class="sig-name descname"><span class="pre">lookup_location</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Google</span> <span class="pre">Maps'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/location/geolocation.html#lookup_location"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.geolocation.lookup_location" title="Permalink to this definition"></a></dt>
+<dd><p>Searches for coordinates on inputted mapping platform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>location</strong> (<em>str</em>) – an address or location name. Defaults to requesting from user input.</p></li>
+<li><p><strong>site</strong> (<em>str</em>) – name of mapping platform to use to lookup coordinates. Defaults to ‘Google Maps’.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.geolocation.normalised_coordinates_distance">
+<span class="sig-prename descclassname"><span class="pre">ida.location.geolocation.</span></span><span class="sig-name descname"><span class="pre">normalised_coordinates_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first_coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'kilometers'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/ida/location/geolocation.html#normalised_coordinates_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.geolocation.normalised_coordinates_distance" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the normalised distance between two coordinates, using units provided by user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>first_coordinates</strong> (<em>str</em><em> or </em><em>list</em>) – the first set of coordinates for comparison.</p></li>
+<li><p><strong>second_coordinates</strong> (<em>str</em><em> or </em><em>list</em>) – the second set of coordinates for comparison.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – units to use for distance calculation. Defaults to ‘kilometers’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – a value between 0 and 1, where 0 is 0 distance and 1 is infinite distance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Normalisation function: map_inf_to_1()</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.geolocation.normalised_coordinates_distance_inverse">
+<span class="sig-prename descclassname"><span class="pre">ida.location.geolocation.</span></span><span class="sig-name descname"><span class="pre">normalised_coordinates_distance_inverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first_coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'kilometers'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/ida/location/geolocation.html#normalised_coordinates_distance_inverse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.geolocation.normalised_coordinates_distance_inverse" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the inverse of the normalised distance between two coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>first_coordinates</strong> (<em>str</em><em> or </em><em>list</em>) – the first set of coordinates for comparison.</p></li>
+<li><p><strong>second_coordinates</strong> (<em>str</em><em> or </em><em>list</em>) – the second set of coordinates for comparison.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – units to use for distance calculation. Defaults to ‘kilometers’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – a value between 0 and 1, where 1 is 0 distance and 0 is infinite distance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Normalisation function: map_inf_to_0()</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.geolocation.normalised_locations_distance">
+<span class="sig-prename descclassname"><span class="pre">ida.location.geolocation.</span></span><span class="sig-name descname"><span class="pre">normalised_locations_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'kilometers'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/ida/location/geolocation.html#normalised_locations_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.geolocation.normalised_locations_distance" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the normalised distance between two locations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>first_location</strong> (<em>str</em>) – the first location name or address for comparison.</p></li>
+<li><p><strong>second_location</strong> (<em>str</em>) – the second location name or address for comparison.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – units to use for distance calculation. Defaults to ‘kilometers’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – a value between 0 and 1, where 0 is 0 distance and 1 is infinity.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Normalisation function: map_inf_to_1()</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.location.geolocation.normalised_locations_distance_inverse">
+<span class="sig-prename descclassname"><span class="pre">ida.location.geolocation.</span></span><span class="sig-name descname"><span class="pre">normalised_locations_distance_inverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'kilometers'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/ida/location/geolocation.html#normalised_locations_distance_inverse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.location.geolocation.normalised_locations_distance_inverse" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the inverse of the normalised distance between two coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>first_location</strong> (<em>str</em>) – the first location name or address for comparison.</p></li>
+<li><p><strong>second_location</strong> (<em>str</em>) – the second location name or address for comparison.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – units to use for distance calculation. Defaults to ‘kilometers’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – a value between 0 and 1, where 1 is 0 distance and 0 is infinity.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Normalisation function: map_inf_to_0()</p>
+</dd></dl>
+
+</section>
+<section id="module-ida.location.weather">
+<span id="ida-location-weather-module"></span><h2>ida.location.weather module<a class="headerlink" href="#module-ida.location.weather" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-ida.location">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ida.location" title="Permalink to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ida.internet.html" class="btn btn-neutral float-left" title="ida.internet package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ida.modelling.html" class="btn btn-neutral float-right" title="ida.modelling package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

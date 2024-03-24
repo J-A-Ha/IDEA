@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.socmed.sherlock package &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ida.socmed.sherlock.tests package" href="ida.socmed.sherlock.tests.html" />
+    <link rel="prev" title="ida.socmed package" href="ida.socmed.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">ida</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ida.html">ida package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="ida.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="ida.audiovisual.html">ida.audiovisual package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.casemanager.html">ida.casemanager package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.core.html">ida.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.datasets.html">ida.datasets package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.exporters.html">ida.exporters package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.importers.html">ida.importers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.internet.html">ida.internet package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.location.html">ida.location package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.modelling.html">ida.modelling package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.networks.html">ida.networks package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="ida.socmed.html">ida.socmed package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.text.html">ida.text package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.visualisation.html">ida.visualisation package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ida.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ida.html#ida-devtools-module">ida.devtools module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ida.html#module-ida">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">ida</a></li>
+          <li class="breadcrumb-item"><a href="ida.html">ida package</a></li>
+          <li class="breadcrumb-item"><a href="ida.socmed.html">ida.socmed package</a></li>
+      <li class="breadcrumb-item active">ida.socmed.sherlock package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ida.socmed.sherlock.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ida-socmed-sherlock-package">
+<h1>ida.socmed.sherlock package<a class="headerlink" href="#ida-socmed-sherlock-package" title="Permalink to this heading"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ida.socmed.sherlock.tests.html">ida.socmed.sherlock.tests package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ida.socmed.sherlock.tests.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ida.socmed.sherlock.tests.html#ida-socmed-sherlock-tests-all-module">ida.socmed.sherlock.tests.all module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ida.socmed.sherlock.tests.html#ida-socmed-sherlock-tests-base-module">ida.socmed.sherlock.tests.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ida.socmed.sherlock.tests.html#ida-socmed-sherlock-tests-test-multiple-usernames-module">ida.socmed.sherlock.tests.test_multiple_usernames module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ida.socmed.sherlock.tests.html#module-ida.socmed.sherlock.tests">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-ida.socmed.sherlock.notify">
+<span id="ida-socmed-sherlock-notify-module"></span><h2>ida.socmed.sherlock.notify module<a class="headerlink" href="#module-ida.socmed.sherlock.notify" title="Permalink to this heading"></a></h2>
+<p>Sherlock Notify Module</p>
+<p>This module defines the objects for notifying the caller about the
+results of queries.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.notify.QueryNotify">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock.notify.</span></span><span class="sig-name descname"><span class="pre">QueryNotify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/notify.html#QueryNotify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.notify.QueryNotify" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Query Notify Object.</p>
+<p>Base class that describes methods available to notify the results of
+a query.
+It is intended that other classes inherit from this base class and
+override the methods to implement specific functionality.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.notify.QueryNotify.finish">
+<span class="sig-name descname"><span class="pre">finish</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/notify.html#QueryNotify.finish"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.notify.QueryNotify.finish" title="Permalink to this definition"></a></dt>
+<dd><p>Notify Finish.</p>
+<p>Notify method for finish of query.  This method will be called after
+all queries have been performed.  This method will typically be
+overridden by higher level classes that will inherit from it.</p>
+<p>Keyword Arguments:
+self                   – This object.
+message                – Object that is used to give context to start</p>
+<blockquote>
+<div><p>of query.
+Default is None.</p>
+</div></blockquote>
+<p>Return Value:
+Nothing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.notify.QueryNotify.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/notify.html#QueryNotify.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.notify.QueryNotify.start" title="Permalink to this definition"></a></dt>
+<dd><p>Notify Start.</p>
+<p>Notify method for start of query.  This method will be called before
+any queries are performed.  This method will typically be
+overridden by higher level classes that will inherit from it.</p>
+<p>Keyword Arguments:
+self                   – This object.
+message                – Object that is used to give context to start</p>
+<blockquote>
+<div><p>of query.
+Default is None.</p>
+</div></blockquote>
+<p>Return Value:
+Nothing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.notify.QueryNotify.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/notify.html#QueryNotify.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.notify.QueryNotify.update" title="Permalink to this definition"></a></dt>
+<dd><p>Notify Update.</p>
+<p>Notify method for query result.  This method will typically be
+overridden by higher level classes that will inherit from it.</p>
+<p>Keyword Arguments:
+self                   – This object.
+result                 – Object of type QueryResult() containing</p>
+<blockquote>
+<div><p>results for this query.</p>
+</div></blockquote>
+<p>Return Value:
+Nothing.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.notify.QueryNotifyPrint">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock.notify.</span></span><span class="sig-name descname"><span class="pre">QueryNotifyPrint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">browse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/notify.html#QueryNotifyPrint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.notify.QueryNotifyPrint" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ida.socmed.sherlock.notify.QueryNotify" title="ida.socmed.sherlock.notify.QueryNotify"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueryNotify</span></code></a></p>
+<p>Query Notify Print Object.</p>
+<p>Query notify class that prints results.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.notify.QueryNotifyPrint.countResults">
+<span class="sig-name descname"><span class="pre">countResults</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/notify.html#QueryNotifyPrint.countResults"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.notify.QueryNotifyPrint.countResults" title="Permalink to this definition"></a></dt>
+<dd><p>This function counts the number of results. Every time the function is called,
+the number of results is increasing.</p>
+<p>Keyword Arguments:
+self                   – This object.</p>
+<p>Return Value:
+The number of results by the time we call the function.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.notify.QueryNotifyPrint.finish">
+<span class="sig-name descname"><span class="pre">finish</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'The</span> <span class="pre">processing</span> <span class="pre">has</span> <span class="pre">been</span> <span class="pre">finished.'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/notify.html#QueryNotifyPrint.finish"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.notify.QueryNotifyPrint.finish" title="Permalink to this definition"></a></dt>
+<dd><p>Notify Start.
+Will print the last line to the standard output.
+Keyword Arguments:
+self                   – This object.
+message                – The 2 last phrases.
+Return Value:
+Nothing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.notify.QueryNotifyPrint.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/notify.html#QueryNotifyPrint.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.notify.QueryNotifyPrint.start" title="Permalink to this definition"></a></dt>
+<dd><p>Notify Start.</p>
+<p>Will print the title to the standard output.</p>
+<p>Keyword Arguments:
+self                   – This object.
+message                – String containing username that the series</p>
+<blockquote>
+<div><p>of queries are about.</p>
+</div></blockquote>
+<p>Return Value:
+Nothing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.notify.QueryNotifyPrint.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/notify.html#QueryNotifyPrint.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.notify.QueryNotifyPrint.update" title="Permalink to this definition"></a></dt>
+<dd><p>Notify Update.</p>
+<p>Will print the query result to the standard output.</p>
+<p>Keyword Arguments:
+self                   – This object.
+result                 – Object of type QueryResult() containing</p>
+<blockquote>
+<div><p>results for this query.</p>
+</div></blockquote>
+<p>Return Value:
+Nothing.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ida.socmed.sherlock.result">
+<span id="ida-socmed-sherlock-result-module"></span><h2>ida.socmed.sherlock.result module<a class="headerlink" href="#module-ida.socmed.sherlock.result" title="Permalink to this heading"></a></h2>
+<p>Sherlock Result Module</p>
+<p>This module defines various objects for recording the results of queries.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.result.QueryResult">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock.result.</span></span><span class="sig-name descname"><span class="pre">QueryResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_url_user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/result.html#QueryResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.result.QueryResult" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Query Result Object.</p>
+<p>Describes result of query about a given username.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.result.QueryStatus">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock.result.</span></span><span class="sig-name descname"><span class="pre">QueryStatus</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/result.html#QueryStatus"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.result.QueryStatus" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>Query Status Enumeration.</p>
+<p>Describes status of query about a given username.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.result.QueryStatus.AVAILABLE">
+<span class="sig-name descname"><span class="pre">AVAILABLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Available'</span></em><a class="headerlink" href="#ida.socmed.sherlock.result.QueryStatus.AVAILABLE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.result.QueryStatus.CLAIMED">
+<span class="sig-name descname"><span class="pre">CLAIMED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Claimed'</span></em><a class="headerlink" href="#ida.socmed.sherlock.result.QueryStatus.CLAIMED" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.result.QueryStatus.ILLEGAL">
+<span class="sig-name descname"><span class="pre">ILLEGAL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Illegal'</span></em><a class="headerlink" href="#ida.socmed.sherlock.result.QueryStatus.ILLEGAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.result.QueryStatus.UNKNOWN">
+<span class="sig-name descname"><span class="pre">UNKNOWN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Unknown'</span></em><a class="headerlink" href="#ida.socmed.sherlock.result.QueryStatus.UNKNOWN" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ida.socmed.sherlock.sherlock">
+<span id="ida-socmed-sherlock-sherlock-module"></span><h2>ida.socmed.sherlock.sherlock module<a class="headerlink" href="#module-ida.socmed.sherlock.sherlock" title="Permalink to this heading"></a></h2>
+<p>Sherlock: Find Usernames Across Social Networks Module</p>
+<p>This module contains the main logic to search for usernames at social
+networks.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.sherlock.SherlockFuturesSession">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock.sherlock.</span></span><span class="sig-name descname"><span class="pre">SherlockFuturesSession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">executor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapter_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/sherlock.html#SherlockFuturesSession"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.sherlock.SherlockFuturesSession" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">FuturesSession</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.sherlock.SherlockFuturesSession.request">
+<span class="sig-name descname"><span class="pre">request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hooks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/sherlock.html#SherlockFuturesSession.request"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.sherlock.SherlockFuturesSession.request" title="Permalink to this definition"></a></dt>
+<dd><p>Request URL.</p>
+<p>This extends the FuturesSession request method to calculate a response
+time metric to each request.</p>
+<p>It is taken (almost) directly from the following Stack Overflow answer:
+<a class="reference external" href="https://github.com/ross/requests-futures#working-in-the-background">https://github.com/ross/requests-futures#working-in-the-background</a></p>
+<p>Keyword Arguments:
+self                   – This object.
+method                 – String containing method desired for request.
+url                    – String containing URL for request.
+hooks                  – Dictionary containing hooks to execute after</p>
+<blockquote>
+<div><p>request finishes.</p>
+</div></blockquote>
+<p>args                   – Arguments.
+kwargs                 – Keyword arguments.</p>
+<p>Return Value:
+Request object.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.sherlock.check_for_parameter">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock.sherlock.</span></span><span class="sig-name descname"><span class="pre">check_for_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/sherlock.html#check_for_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.sherlock.check_for_parameter" title="Permalink to this definition"></a></dt>
+<dd><p>checks if {?} exists in the username
+if exist it means that sherlock is looking for more multiple username</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.sherlock.get_response">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock.sherlock.</span></span><span class="sig-name descname"><span class="pre">get_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_future</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">social_network</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/sherlock.html#get_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.sherlock.get_response" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.sherlock.handler">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock.sherlock.</span></span><span class="sig-name descname"><span class="pre">handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal_received</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/sherlock.html#handler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.sherlock.handler" title="Permalink to this definition"></a></dt>
+<dd><p>Exit gracefully without throwing errors</p>
+<p>Source: <a class="reference external" href="https://www.devdungeon.com/content/python-catch-sigint-ctrl-c">https://www.devdungeon.com/content/python-catch-sigint-ctrl-c</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.sherlock.interpolate_string">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock.sherlock.</span></span><span class="sig-name descname"><span class="pre">interpolate_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/sherlock.html#interpolate_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.sherlock.interpolate_string" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.sherlock.main">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock.sherlock.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/sherlock.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.sherlock.main" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.sherlock.multiple_usernames">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock.sherlock.</span></span><span class="sig-name descname"><span class="pre">multiple_usernames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/sherlock.html#multiple_usernames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.sherlock.multiple_usernames" title="Permalink to this definition"></a></dt>
+<dd><p>replace the parameter with with symbols and return a list of usernames</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.sherlock.sherlock">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock.sherlock.</span></span><span class="sig-name descname"><span class="pre">sherlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_notify</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique_tor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/sherlock.html#sherlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.sherlock.sherlock" title="Permalink to this definition"></a></dt>
+<dd><p>Run Sherlock Analysis.</p>
+<p>Checks for existence of username on various social media sites.</p>
+<p>Keyword Arguments:
+username               – String indicating username that report</p>
+<blockquote>
+<div><p>should be created against.</p>
+</div></blockquote>
+<p>site_data              – Dictionary containing all of the site data.
+query_notify           – Object with base type of QueryNotify().</p>
+<blockquote>
+<div><p>This will be used to notify the caller about
+query results.</p>
+</div></blockquote>
+<p>tor                    – Boolean indicating whether to use a tor circuit for the requests.
+unique_tor             – Boolean indicating whether to use a new tor circuit for each request.
+proxy                  – String indicating the proxy URL
+timeout                – Time in seconds to wait before timing out request.</p>
+<blockquote>
+<div><p>Default is 60 seconds.</p>
+</div></blockquote>
+<p>Return Value:
+Dictionary containing results from report. Key of dictionary is the name
+of the social network site, and the value is another dictionary with
+the following keys:</p>
+<blockquote>
+<div><p>url_main:      URL of main site.
+url_user:      URL of user on site (if account exists).
+status:        QueryResult() object indicating results of test for</p>
+<blockquote>
+<div><p>account existence.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>http_status:   HTTP status code of query which checked for existence on</dt><dd><p>site.</p>
+</dd>
+<dt>response_text: Text that came back from request.  May be None if</dt><dd><p>there was an HTTP error when checking for existence.</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.sherlock.timeout_check">
+<span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock.sherlock.</span></span><span class="sig-name descname"><span class="pre">timeout_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/sherlock.html#timeout_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.sherlock.timeout_check" title="Permalink to this definition"></a></dt>
+<dd><p>Check Timeout Argument.</p>
+<p>Checks timeout for validity.</p>
+<p>Keyword Arguments:
+value                  – Time in seconds to wait before timing out request.</p>
+<p>Return Value:
+Floating point number representing the time (in seconds) that should be
+used for the timeout.</p>
+<p>NOTE:  Will raise an exception if the timeout in invalid.</p>
+</dd></dl>
+
+</section>
+<section id="module-ida.socmed.sherlock.sites">
+<span id="ida-socmed-sherlock-sites-module"></span><h2>ida.socmed.sherlock.sites module<a class="headerlink" href="#module-ida.socmed.sherlock.sites" title="Permalink to this heading"></a></h2>
+<p>Sherlock Sites Information Module</p>
+<p>This module supports storing information about websites.
+This is the raw data that will be used to search for usernames.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.sites.SiteInformation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock.sites.</span></span><span class="sig-name descname"><span class="pre">SiteInformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url_home</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url_username_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username_claimed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">information</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_nsfw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username_unclaimed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'7fO-L_3Y4JoBEw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/sites.html#SiteInformation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.sites.SiteInformation" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.sites.SitesInformation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ida.socmed.sherlock.sites.</span></span><span class="sig-name descname"><span class="pre">SitesInformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_file_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/sites.html#SitesInformation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.sites.SitesInformation" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.sites.SitesInformation.remove_nsfw_sites">
+<span class="sig-name descname"><span class="pre">remove_nsfw_sites</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/sites.html#SitesInformation.remove_nsfw_sites"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.sites.SitesInformation.remove_nsfw_sites" title="Permalink to this definition"></a></dt>
+<dd><p>Remove NSFW sites from the sites, if isNSFW flag is true for site</p>
+<p>Keyword Arguments:
+self                   – This object.</p>
+<p>Return Value:
+None</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ida.socmed.sherlock.sites.SitesInformation.site_name_list">
+<span class="sig-name descname"><span class="pre">site_name_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/socmed/sherlock/sites.html#SitesInformation.site_name_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.socmed.sherlock.sites.SitesInformation.site_name_list" title="Permalink to this definition"></a></dt>
+<dd><p>Get Site Name List.</p>
+<p>Keyword Arguments:
+self                   – This object.</p>
+<p>Return Value:
+List of strings containing names of sites.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ida.socmed.sherlock">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ida.socmed.sherlock" title="Permalink to this heading"></a></h2>
+<p>Sherlock Module</p>
+<p>This module contains the main logic to search for usernames at social
+networks.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ida.socmed.html" class="btn btn-neutral float-left" title="ida.socmed package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ida.socmed.sherlock.tests.html" class="btn btn-neutral float-right" title="ida.socmed.sherlock.tests package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

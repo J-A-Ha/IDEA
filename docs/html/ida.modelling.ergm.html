@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.modelling.ergm package &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ida.networks package" href="ida.networks.html" />
+    <link rel="prev" title="ida.modelling package" href="ida.modelling.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">ida</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ida.html">ida package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="ida.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="ida.audiovisual.html">ida.audiovisual package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.casemanager.html">ida.casemanager package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.core.html">ida.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.datasets.html">ida.datasets package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.exporters.html">ida.exporters package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.importers.html">ida.importers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.internet.html">ida.internet package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.location.html">ida.location package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="ida.modelling.html">ida.modelling package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.networks.html">ida.networks package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.socmed.html">ida.socmed package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.text.html">ida.text package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ida.visualisation.html">ida.visualisation package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ida.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ida.html#ida-devtools-module">ida.devtools module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ida.html#module-ida">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">ida</a></li>
+          <li class="breadcrumb-item"><a href="ida.html">ida package</a></li>
+          <li class="breadcrumb-item"><a href="ida.modelling.html">ida.modelling package</a></li>
+      <li class="breadcrumb-item active">ida.modelling.ergm package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ida.modelling.ergm.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ida-modelling-ergm-package">
+<h1>ida.modelling.ergm package<a class="headerlink" href="#ida-modelling-ergm-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-ida.modelling.ergm.ergm_functions">
+<span id="ida-modelling-ergm-ergm-functions-module"></span><h2>ida.modelling.ergm.ergm_functions module<a class="headerlink" href="#module-ida.modelling.ergm.ergm_functions" title="Permalink to this heading"></a></h2>
+<p>Functions for running Exponential Random Graph Model (ERGM) analysis on networks.</p>
+<p>Code implementation utilises the RPy2 package to emulate R’s ERGM library.</p>
+<p class="rubric">Notes</p>
+<dl class="simple">
+<dt>See documentation:</dt><dd><ul class="simple">
+<li><p>RPy2: <a class="reference external" href="https://rpy2.github.io/doc/latest/html/index.html">https://rpy2.github.io/doc/latest/html/index.html</a></p></li>
+<li><p>R ERGM: <a class="reference external" href="https://cran.r-project.org/web/packages/ergm/ergm.pdf">https://cran.r-project.org/web/packages/ergm/ergm.pdf</a></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.modelling.ergm.ergm_functions.case_edge_probabilities">
+<span class="sig-prename descclassname"><span class="pre">ida.modelling.ergm.ergm_functions.</span></span><span class="sig-name descname"><span class="pre">case_edge_probabilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'edges'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/modelling/ergm/ergm_functions.html#case_edge_probabilities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.modelling.ergm.ergm_functions.case_edge_probabilities" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates edge probabilities for a fitted Expontential Random Graph Model using selected terms as modelling parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> (<em>str</em>) – name of network object from Case to fit ERGM to.</p></li>
+<li><p><strong>terms</strong> (<em>str</em><em> or </em><em>list</em>) – name or list of name of terms for formula.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.modelling.ergm.ergm_functions.case_fit_ergm">
+<span class="sig-prename descclassname"><span class="pre">ida.modelling.ergm.ergm_functions.</span></span><span class="sig-name descname"><span class="pre">case_fit_ergm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'edges'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/modelling/ergm/ergm_functions.html#case_fit_ergm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.modelling.ergm.ergm_functions.case_fit_ergm" title="Permalink to this definition"></a></dt>
+<dd><p>Fits Expontential Random Graph Model to network from Case.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> (<em>str</em><em>, </em><em>igraph.Graph</em><em>, </em><em>NetworkX</em><em>, or </em><a class="reference internal" href="ida.casemanager.html#ida.casemanager.networks.CaseNetwork" title="ida.casemanager.networks.CaseNetwork"><em>CaseNetwork</em></a>) – name of network object to fit ERGM to.</p></li>
+<li><p><strong>terms</strong> (<em>str</em><em> or </em><em>list</em>) – name or list of name of terms for formula.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – fitted ERGM.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.modelling.ergm.ergm_functions.casenet_edge_probabilities">
+<span class="sig-prename descclassname"><span class="pre">ida.modelling.ergm.ergm_functions.</span></span><span class="sig-name descname"><span class="pre">casenet_edge_probabilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'edges'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/modelling/ergm/ergm_functions.html#casenet_edge_probabilities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.modelling.ergm.ergm_functions.casenet_edge_probabilities" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates edge probabilities for a fitted Expontential Random Graph Model using selected terms as modelling parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> (<em>str</em>) – name of network object from Case to fit ERGM to.</p></li>
+<li><p><strong>terms</strong> (<em>str</em><em> or </em><em>list</em>) – name or list of name of terms for formula.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.modelling.ergm.ergm_functions.casenet_fit_ergm">
+<span class="sig-prename descclassname"><span class="pre">ida.modelling.ergm.ergm_functions.</span></span><span class="sig-name descname"><span class="pre">casenet_fit_ergm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'request_input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'edges'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/modelling/ergm/ergm_functions.html#casenet_fit_ergm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.modelling.ergm.ergm_functions.casenet_fit_ergm" title="Permalink to this definition"></a></dt>
+<dd><p>Fits Expontential Random Graph Model to network from CaseNetworkSet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> (<em>str</em><em>, </em><em>igraph.Graph</em><em>, </em><em>NetworkX</em><em>, or </em><a class="reference internal" href="ida.casemanager.html#ida.casemanager.networks.CaseNetwork" title="ida.casemanager.networks.CaseNetwork"><em>CaseNetwork</em></a>) – network object to fit ERGM to.</p></li>
+<li><p><strong>terms</strong> (<em>str</em><em> or </em><em>list</em>) – name or list of name of terms for formula.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – fitted ERGM.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.modelling.ergm.ergm_functions.create_ergm">
+<span class="sig-prename descclassname"><span class="pre">ida.modelling.ergm.ergm_functions.</span></span><span class="sig-name descname"><span class="pre">create_ergm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['edges']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/modelling/ergm/ergm_functions.html#create_ergm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.modelling.ergm.ergm_functions.create_ergm" title="Permalink to this definition"></a></dt>
+<dd><p>Initialises an Expontential Random Graph Model using selected terms as modelling parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> (<em>igraph.Graph</em><em>, </em><em>NetworkX</em><em>, or </em><a class="reference internal" href="ida.casemanager.html#ida.casemanager.networks.CaseNetwork" title="ida.casemanager.networks.CaseNetwork"><em>CaseNetwork</em></a>) – network object to fit ERGM to.</p></li>
+<li><p><strong>terms</strong> (<em>str</em><em> or </em><em>list</em>) – name or list of name of terms for formula.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – fitted ERGM.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.modelling.ergm.ergm_functions.edge_probabilities">
+<span class="sig-prename descclassname"><span class="pre">ida.modelling.ergm.ergm_functions.</span></span><span class="sig-name descname"><span class="pre">edge_probabilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['edges']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/modelling/ergm/ergm_functions.html#edge_probabilities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.modelling.ergm.ergm_functions.edge_probabilities" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates edge probabilities for a fitted Expontential Random Graph Model using selected terms as modelling parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>terms</strong> (<em>str</em><em> or </em><em>list</em>) – name or list of name of terms for formula.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.modelling.ergm.ergm_functions.ergm_edge_probabilities">
+<span class="sig-prename descclassname"><span class="pre">ida.modelling.ergm.ergm_functions.</span></span><span class="sig-name descname"><span class="pre">ergm_edge_probabilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['edges']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/modelling/ergm/ergm_functions.html#ergm_edge_probabilities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.modelling.ergm.ergm_functions.ergm_edge_probabilities" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates edge probabilities for a fitted Expontential Random Graph Model using selected terms as modelling parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> (<em>igraph.Graph</em><em>, </em><em>NetworkX</em><em>, or </em><a class="reference internal" href="ida.casemanager.html#ida.casemanager.networks.CaseNetwork" title="ida.casemanager.networks.CaseNetwork"><em>CaseNetwork</em></a>) – network object to fit ERGM to.</p></li>
+<li><p><strong>terms</strong> (<em>str</em><em> or </em><em>list</em>) – name or list of name of terms for formula.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – dataframe of edge probabilities.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ida.modelling.ergm.ergm_functions.fit_ergm">
+<span class="sig-prename descclassname"><span class="pre">ida.modelling.ergm.ergm_functions.</span></span><span class="sig-name descname"><span class="pre">fit_ergm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['edges']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ida/modelling/ergm/ergm_functions.html#fit_ergm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ida.modelling.ergm.ergm_functions.fit_ergm" title="Permalink to this definition"></a></dt>
+<dd><p>Fits an Expontential Random Graph Model using selected terms as modelling parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> (<em>str</em><em>, </em><em>igraph.Graph</em><em>, </em><em>NetworkX</em><em>, or </em><a class="reference internal" href="ida.casemanager.html#ida.casemanager.networks.CaseNetwork" title="ida.casemanager.networks.CaseNetwork"><em>CaseNetwork</em></a>) – network object to fit ERGM to.</p></li>
+<li><p><strong>terms</strong> (<em>str</em><em> or </em><em>list</em>) – name or list of name of terms for formula.</p></li>
+<li><p><strong>print_results</strong> (<em>bool</em>) – whether to print results to the console. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – dictionary of ERGM results.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-ida.modelling.ergm">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ida.modelling.ergm" title="Permalink to this heading"></a></h2>
+<p>Functions for running Exponential Random Graph Model (ERGM) analysis on networks.</p>
+<p>Code implementation utilises the RPy2 package to emulate R’s ERGM library.</p>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>RPy2: <a class="reference external" href="https://rpy2.github.io/doc/latest/html/index.html">https://rpy2.github.io/doc/latest/html/index.html</a></p></li>
+<li><p>R ERGM: <a class="reference external" href="https://cran.r-project.org/web/packages/ergm/ergm.pdf">https://cran.r-project.org/web/packages/ergm/ergm.pdf</a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ida.modelling.html" class="btn btn-neutral float-left" title="ida.modelling package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ida.networks.html" class="btn btn-neutral float-right" title="ida.networks package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
