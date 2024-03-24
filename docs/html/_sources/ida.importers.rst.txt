@@ -1,0 +1,21 @@
+ida.importers package
+=====================
+
+Submodules
+----------
+
+ida.importers.pdf module
+------------------------
+
+.. automodule:: ida.importers.pdf
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: ida.importers
+   :members:
+   :undoc-members:
+   :show-inheritance:

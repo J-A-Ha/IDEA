@@ -1,0 +1,37 @@
+ida.core package
+================
+
+Submodules
+----------
+
+ida.core.basics module
+----------------------
+
+.. automodule:: ida.core.basics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.core.cleaners module
+------------------------
+
+.. automodule:: ida.core.cleaners
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.core.globaltools module
+---------------------------
+
+.. automodule:: ida.core.globaltools
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: ida.core
+   :members:
+   :undoc-members:
+   :show-inheritance:

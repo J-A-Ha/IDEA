@@ -1,0 +1,53 @@
+ida.socmed.sherlock package
+===========================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   ida.socmed.sherlock.tests
+
+Submodules
+----------
+
+ida.socmed.sherlock.notify module
+---------------------------------
+
+.. automodule:: ida.socmed.sherlock.notify
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.sherlock.result module
+---------------------------------
+
+.. automodule:: ida.socmed.sherlock.result
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.sherlock.sherlock module
+-----------------------------------
+
+.. automodule:: ida.socmed.sherlock.sherlock
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.sherlock.sites module
+--------------------------------
+
+.. automodule:: ida.socmed.sherlock.sites
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: ida.socmed.sherlock
+   :members:
+   :undoc-members:
+   :show-inheritance:

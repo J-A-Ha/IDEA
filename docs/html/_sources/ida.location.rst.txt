@@ -1,0 +1,45 @@
+ida.location package
+====================
+
+Submodules
+----------
+
+ida.location.astronomy module
+-----------------------------
+
+.. automodule:: ida.location.astronomy
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.location.chronolocation module
+----------------------------------
+
+.. automodule:: ida.location.chronolocation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.location.geolocation module
+-------------------------------
+
+.. automodule:: ida.location.geolocation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.location.weather module
+---------------------------
+
+.. automodule:: ida.location.weather
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: ida.location
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,37 @@
+ida.socmed.sherlock.tests package
+=================================
+
+Submodules
+----------
+
+ida.socmed.sherlock.tests.all module
+------------------------------------
+
+.. automodule:: ida.socmed.sherlock.tests.all
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.sherlock.tests.base module
+-------------------------------------
+
+.. automodule:: ida.socmed.sherlock.tests.base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.sherlock.tests.test\_multiple\_usernames module
+----------------------------------------------------------
+
+.. automodule:: ida.socmed.sherlock.tests.test_multiple_usernames
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: ida.socmed.sherlock.tests
+   :members:
+   :undoc-members:
+   :show-inheritance:

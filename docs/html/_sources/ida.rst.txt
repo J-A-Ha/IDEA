@@ -1,0 +1,41 @@
+ida package
+===========
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   ida.audiovisual
+   ida.casemanager
+   ida.core
+   ida.datasets
+   ida.exporters
+   ida.importers
+   ida.internet
+   ida.location
+   ida.modelling
+   ida.networks
+   ida.socmed
+   ida.text
+   ida.visualisation
+
+Submodules
+----------
+
+ida.devtools module
+-------------------
+
+.. automodule:: ida.devtools
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: ida
+   :members:
+   :undoc-members:
+   :show-inheritance:

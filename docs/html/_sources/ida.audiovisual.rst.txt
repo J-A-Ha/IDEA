@@ -1,0 +1,10 @@
+ida.audiovisual package
+=======================
+
+Module contents
+---------------
+
+.. automodule:: ida.audiovisual
+   :members:
+   :undoc-members:
+   :show-inheritance:

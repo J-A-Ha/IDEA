@@ -1,0 +1,61 @@
+ida.datasets package
+====================
+
+Submodules
+----------
+
+ida.datasets.cities module
+--------------------------
+
+.. automodule:: ida.datasets.cities
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.datasets.countries module
+-----------------------------
+
+.. automodule:: ida.datasets.countries
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.datasets.html\_stopwords module
+-----------------------------------
+
+.. automodule:: ida.datasets.html_stopwords
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.datasets.languages module
+-----------------------------
+
+.. automodule:: ida.datasets.languages
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.datasets.names module
+-------------------------
+
+.. automodule:: ida.datasets.names
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.datasets.stopwords module
+-----------------------------
+
+.. automodule:: ida.datasets.stopwords
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: ida.datasets
+   :members:
+   :undoc-members:
+   :show-inheritance:

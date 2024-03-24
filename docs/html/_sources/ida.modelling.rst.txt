@@ -1,0 +1,18 @@
+ida.modelling package
+=====================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   ida.modelling.ergm
+
+Module contents
+---------------
+
+.. automodule:: ida.modelling
+   :members:
+   :undoc-members:
+   :show-inheritance:

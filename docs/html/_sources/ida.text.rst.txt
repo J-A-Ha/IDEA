@@ -1,0 +1,29 @@
+ida.text package
+================
+
+Submodules
+----------
+
+ida.text.information\_extraction module
+---------------------------------------
+
+.. automodule:: ida.text.information_extraction
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.text.textanalysis module
+----------------------------
+
+.. automodule:: ida.text.textanalysis
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: ida.text
+   :members:
+   :undoc-members:
+   :show-inheritance:

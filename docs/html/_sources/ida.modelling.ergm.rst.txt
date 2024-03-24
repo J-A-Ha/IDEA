@@ -1,0 +1,21 @@
+ida.modelling.ergm package
+==========================
+
+Submodules
+----------
+
+ida.modelling.ergm.ergm\_functions module
+-----------------------------------------
+
+.. automodule:: ida.modelling.ergm.ergm_functions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: ida.modelling.ergm
+   :members:
+   :undoc-members:
+   :show-inheritance:

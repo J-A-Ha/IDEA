@@ -1,0 +1,117 @@
+ida.socmed package
+==================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   ida.socmed.sherlock
+
+Submodules
+----------
+
+ida.socmed.4chan module
+-----------------------
+
+.. automodule:: ida.socmed.4chan
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.activitypub module
+-----------------------------
+
+.. automodule:: ida.socmed.activitypub
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.atprotocol module
+----------------------------
+
+.. automodule:: ida.socmed.atprotocol
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.bluesky module
+-------------------------
+
+.. automodule:: ida.socmed.bluesky
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.instagram module
+---------------------------
+
+.. automodule:: ida.socmed.instagram
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.linkedin module
+--------------------------
+
+.. automodule:: ida.socmed.linkedin
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.mastodon module
+--------------------------
+
+.. automodule:: ida.socmed.mastodon
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.reddit module
+------------------------
+
+.. automodule:: ida.socmed.reddit
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.sherlock\_interpreter module
+---------------------------------------
+
+.. automodule:: ida.socmed.sherlock_interpreter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.telegram module
+--------------------------
+
+.. automodule:: ida.socmed.telegram
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.telgeo module
+------------------------
+
+.. automodule:: ida.socmed.telgeo
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.socmed.youtube module
+-------------------------
+
+.. automodule:: ida.socmed.youtube
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: ida.socmed
+   :members:
+   :undoc-members:
+   :show-inheritance:

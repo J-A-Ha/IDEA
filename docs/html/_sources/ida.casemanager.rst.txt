@@ -1,0 +1,133 @@
+ida.casemanager package
+=======================
+
+Submodules
+----------
+
+ida.casemanager.analytics module
+--------------------------------
+
+.. automodule:: ida.casemanager.analytics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.casemanager.backups\_manager module
+---------------------------------------
+
+.. automodule:: ida.casemanager.backups_manager
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.casemanager.case module
+---------------------------
+
+.. automodule:: ida.casemanager.case
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.casemanager.casedata module
+-------------------------------
+
+.. automodule:: ida.casemanager.casedata
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.casemanager.defaults\_manager module
+----------------------------------------
+
+.. automodule:: ida.casemanager.defaults_manager
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.casemanager.entities module
+-------------------------------
+
+.. automodule:: ida.casemanager.entities
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.casemanager.events module
+-----------------------------
+
+.. automodule:: ida.casemanager.events
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.casemanager.general module
+------------------------------
+
+.. automodule:: ida.casemanager.general
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.casemanager.indexes module
+------------------------------
+
+.. automodule:: ida.casemanager.indexes
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.casemanager.items module
+----------------------------
+
+.. automodule:: ida.casemanager.items
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.casemanager.networks module
+-------------------------------
+
+.. automodule:: ida.casemanager.networks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.casemanager.obj\_properties module
+--------------------------------------
+
+.. automodule:: ida.casemanager.obj_properties
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.casemanager.obj\_superclasses module
+----------------------------------------
+
+.. automodule:: ida.casemanager.obj_superclasses
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.casemanager.projects module
+-------------------------------
+
+.. automodule:: ida.casemanager.projects
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ida.casemanager.relationships module
+------------------------------------
+
+.. automodule:: ida.casemanager.relationships
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: ida.casemanager
+   :members:
+   :undoc-members:
+   :show-inheritance:

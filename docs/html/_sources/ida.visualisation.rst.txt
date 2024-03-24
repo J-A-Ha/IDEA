@@ -1,0 +1,21 @@
+ida.visualisation package
+=========================
+
+Submodules
+----------
+
+ida.visualisation.visualise module
+----------------------------------
+
+.. automodule:: ida.visualisation.visualise
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: ida.visualisation
+   :members:
+   :undoc-members:
+   :show-inheritance:

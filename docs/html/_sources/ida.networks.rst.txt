@@ -1,0 +1,21 @@
+ida.networks package
+====================
+
+Submodules
+----------
+
+ida.networks.network\_functions module
+--------------------------------------
+
+.. automodule:: ida.networks.network_functions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: ida.networks
+   :members:
+   :undoc-members:
+   :show-inheritance:
