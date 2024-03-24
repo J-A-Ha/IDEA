@@ -81,8 +81,9 @@ IDEA is a toolkit for conducting investigations using data. It is written in Pyt
 
 To download from GitHub, run the following code in your command interface:
 ```bash
-cd downloads
-git clone https://github.com/J-A-Ha/IDEA/tree/d8acdf35ac609b749b05fe1f0471f3bdebb9c665/IDEA
+gh repo clone J-A-Ha/IDEA
+cd IDEA
+pip install -r requirements.txt
 ```
 
 ### **Beginners Guide**
