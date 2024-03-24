@@ -1,5 +1,5 @@
 ---
-title: 'Investigative Data Analyser'
+title: 'Investigative Data and Evidence Analyser (IDEA)'
 ---
 
 <!-- Investigative Data and Evidence Analyser (IDEA)
