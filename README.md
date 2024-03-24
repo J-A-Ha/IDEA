@@ -239,7 +239,7 @@ Useful methods:
 
 ### Documentation
 
-For the full documentation, click [here](../docs/_build/html/index.html).
+For the full documentation, click [here](./docs/html/index.html).
 
 ### Dependencies
 
