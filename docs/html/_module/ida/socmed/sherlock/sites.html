@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.socmed.sherlock.sites &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">ida</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ida.socmed.sherlock.sites</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ida.socmed.sherlock.sites</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Sherlock Sites Information Module</span>
+
+<span class="sd">This module supports storing information about websites.</span>
+<span class="sd">This is the raw data that will be used to search for usernames.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">secrets</span>
+
+<div class="viewcode-block" id="SiteInformation"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.sites.SiteInformation">[docs]</a><span class="k">class</span> <span class="nc">SiteInformation</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">url_home</span><span class="p">,</span> <span class="n">url_username_format</span><span class="p">,</span> <span class="n">username_claimed</span><span class="p">,</span>
+                <span class="n">information</span><span class="p">,</span> <span class="n">is_nsfw</span><span class="p">,</span> <span class="n">username_unclaimed</span><span class="o">=</span><span class="n">secrets</span><span class="o">.</span><span class="n">token_urlsafe</span><span class="p">(</span><span class="mi">10</span><span class="p">)):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create Site Information Object.</span>
+
+<span class="sd">        Contains information about a specific website.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+<span class="sd">        name                   -- String which identifies site.</span>
+<span class="sd">        url_home               -- String containing URL for home of site.</span>
+<span class="sd">        url_username_format    -- String containing URL for Username format</span>
+<span class="sd">                                  on site.</span>
+<span class="sd">                                  NOTE:  The string should contain the</span>
+<span class="sd">                                         token &quot;{}&quot; where the username should</span>
+<span class="sd">                                         be substituted.  For example, a string</span>
+<span class="sd">                                         of &quot;https://somesite.com/users/{}&quot;</span>
+<span class="sd">                                         indicates that the individual</span>
+<span class="sd">                                         usernames would show up under the</span>
+<span class="sd">                                         &quot;https://somesite.com/users/&quot; area of</span>
+<span class="sd">                                         the website.</span>
+<span class="sd">        username_claimed       -- String containing username which is known</span>
+<span class="sd">                                  to be claimed on website.</span>
+<span class="sd">        username_unclaimed     -- String containing username which is known</span>
+<span class="sd">                                  to be unclaimed on website.</span>
+<span class="sd">        information            -- Dictionary containing all known information</span>
+<span class="sd">                                  about website.</span>
+<span class="sd">                                  NOTE:  Custom information about how to</span>
+<span class="sd">                                         actually detect the existence of the</span>
+<span class="sd">                                         username will be included in this</span>
+<span class="sd">                                         dictionary.  This information will</span>
+<span class="sd">                                         be needed by the detection method,</span>
+<span class="sd">                                         but it is only recorded in this</span>
+<span class="sd">                                         object for future use.</span>
+<span class="sd">        is_nsfw                -- Boolean indicating if site is Not Safe For Work.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        Nothing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">url_home</span> <span class="o">=</span> <span class="n">url_home</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">url_username_format</span> <span class="o">=</span> <span class="n">url_username_format</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">username_claimed</span> <span class="o">=</span> <span class="n">username_claimed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">username_unclaimed</span> <span class="o">=</span> <span class="n">secrets</span><span class="o">.</span><span class="n">token_urlsafe</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">information</span> <span class="o">=</span> <span class="n">information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_nsfw</span>  <span class="o">=</span> <span class="n">is_nsfw</span>
+
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert Object To String.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        Nicely formatted string to get information about this object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">url_home</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+
+
+<div class="viewcode-block" id="SitesInformation"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.sites.SitesInformation">[docs]</a><span class="k">class</span> <span class="nc">SitesInformation</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_file_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create Sites Information Object.</span>
+
+<span class="sd">        Contains information about all supported websites.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+<span class="sd">        data_file_path         -- String which indicates path to data file.</span>
+<span class="sd">                                  The file name must end in &quot;.json&quot;.</span>
+
+<span class="sd">                                  There are 3 possible formats:</span>
+<span class="sd">                                   * Absolute File Format</span>
+<span class="sd">                                     For example, &quot;c:/stuff/data.json&quot;.</span>
+<span class="sd">                                   * Relative File Format</span>
+<span class="sd">                                     The current working directory is used</span>
+<span class="sd">                                     as the context.</span>
+<span class="sd">                                     For example, &quot;data.json&quot;.</span>
+<span class="sd">                                   * URL Format</span>
+<span class="sd">                                     For example,</span>
+<span class="sd">                                     &quot;https://example.com/data.json&quot;, or</span>
+<span class="sd">                                     &quot;http://example.com/data.json&quot;.</span>
+
+<span class="sd">                                  An exception will be thrown if the path</span>
+<span class="sd">                                  to the data file is not in the expected</span>
+<span class="sd">                                  format, or if there was any problem loading</span>
+<span class="sd">                                  the file.</span>
+
+<span class="sd">                                  If this option is not specified, then a</span>
+<span class="sd">                                  default site list will be used.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        Nothing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">data_file_path</span><span class="p">:</span>
+            <span class="c1"># The default data file is the live data.json which is in the GitHub repo. The reason why we are using</span>
+            <span class="c1"># this instead of the local one is so that the user has the most up-to-date data. This prevents</span>
+            <span class="c1"># users from creating issue about false positives which has already been fixed or having outdated data</span>
+            <span class="n">data_file_path</span> <span class="o">=</span> <span class="s2">&quot;https://raw.githubusercontent.com/sherlock-project/sherlock/master/sherlock/resources/data.json&quot;</span>
+
+        <span class="c1"># Ensure that specified data file has correct extension.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">data_file_path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.json&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Incorrect JSON file extension for data file &#39;</span><span class="si">{</span><span class="n">data_file_path</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># if &quot;http://&quot;  == data_file_path[:7].lower() or &quot;https://&quot; == data_file_path[:8].lower():</span>
+        <span class="k">if</span> <span class="n">data_file_path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">):</span>
+            <span class="c1"># Reference is to a URL.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">data_file_path</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Problem while attempting to access data file URL &#39;</span><span class="si">{</span><span class="n">data_file_path</span><span class="si">}</span><span class="s2">&#39;:  </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bad response while accessing &quot;</span>
+                                        <span class="sa">f</span><span class="s2">&quot;data file URL &#39;</span><span class="si">{</span><span class="n">data_file_path</span><span class="si">}</span><span class="s2">&#39;.&quot;</span>
+                                        <span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">site_data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Problem parsing json contents at &#39;</span><span class="si">{</span><span class="n">data_file_path</span><span class="si">}</span><span class="s2">&#39;:  </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Reference is to a file.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_file_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">site_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Problem parsing json contents at &#39;</span><span class="si">{</span><span class="n">data_file_path</span><span class="si">}</span><span class="s2">&#39;:  </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Problem while attempting to access &quot;</span>
+                                        <span class="sa">f</span><span class="s2">&quot;data file &#39;</span><span class="si">{</span><span class="n">data_file_path</span><span class="si">}</span><span class="s2">&#39;.&quot;</span>
+                                        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Add all site information from the json file to internal site list.</span>
+        <span class="k">for</span> <span class="n">site_name</span> <span class="ow">in</span> <span class="n">site_data</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">[</span><span class="n">site_name</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="n">SiteInformation</span><span class="p">(</span><span class="n">site_name</span><span class="p">,</span>
+                                    <span class="n">site_data</span><span class="p">[</span><span class="n">site_name</span><span class="p">][</span><span class="s2">&quot;urlMain&quot;</span><span class="p">],</span>
+                                    <span class="n">site_data</span><span class="p">[</span><span class="n">site_name</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">],</span>
+                                    <span class="n">site_data</span><span class="p">[</span><span class="n">site_name</span><span class="p">][</span><span class="s2">&quot;username_claimed&quot;</span><span class="p">],</span>
+                                    <span class="n">site_data</span><span class="p">[</span><span class="n">site_name</span><span class="p">],</span>
+                                    <span class="n">site_data</span><span class="p">[</span><span class="n">site_name</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;isNSFW&quot;</span><span class="p">,</span><span class="kc">False</span><span class="p">)</span>
+
+                                    <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Problem parsing json contents at &#39;</span><span class="si">{</span><span class="n">data_file_path</span><span class="si">}</span><span class="s2">&#39;:  Missing attribute </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span>
+
+<div class="viewcode-block" id="SitesInformation.remove_nsfw_sites"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.sites.SitesInformation.remove_nsfw_sites">[docs]</a>    <span class="k">def</span> <span class="nf">remove_nsfw_sites</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove NSFW sites from the sites, if isNSFW flag is true for site</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sites</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">[</span><span class="n">site</span><span class="p">]</span><span class="o">.</span><span class="n">is_nsfw</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">sites</span><span class="p">[</span><span class="n">site</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">[</span><span class="n">site</span><span class="p">]</span>  
+        <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span>  <span class="n">sites</span></div>
+
+<div class="viewcode-block" id="SitesInformation.site_name_list"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.sites.SitesInformation.site_name_list">[docs]</a>    <span class="k">def</span> <span class="nf">site_name_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get Site Name List.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        List of strings containing names of sites.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">site</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="o">.</span><span class="n">lower</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Iterator For Object.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        Iterator for sites object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">site_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">[</span><span class="n">site_name</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Length For Object.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        Length of sites object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

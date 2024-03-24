@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.internet.webanalysis &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">ida</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ida.internet.webanalysis</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ida.internet.webanalysis</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Functions for url, domain, website, IP and WhoIs analysis&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">ipaddress</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">webbrowser</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">courlan</span> <span class="kn">import</span> <span class="n">extract_domain</span><span class="p">,</span> <span class="n">normalize_url</span><span class="p">,</span> <span class="n">clean_url</span><span class="p">,</span> <span class="n">validate_url</span><span class="p">,</span> <span class="n">sample_urls</span><span class="p">,</span> <span class="n">check_url</span><span class="p">,</span> <span class="n">scrub_url</span><span class="p">,</span> <span class="n">is_external</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote</span>
+<span class="kn">import</span> <span class="nn">whois</span>
+
+<span class="c1"># https://ipwhois.readthedocs.io/en/latest/README.html</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">ipwhois</span>
+    <span class="kn">from</span> <span class="nn">ipwhois</span> <span class="kn">import</span> <span class="n">IPWhois</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+<span class="kn">import</span> <span class="nn">geocoder</span>
+<span class="kn">import</span> <span class="nn">wayback</span>
+<span class="kn">from</span> <span class="nn">wayback</span> <span class="kn">import</span> <span class="n">WaybackClient</span>
+<span class="kn">from</span> <span class="nn">comcrawl</span> <span class="kn">import</span> <span class="n">IndexClient</span>
+
+<div class="viewcode-block" id="domain_splitter"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.domain_splitter">[docs]</a><span class="k">def</span> <span class="nf">domain_splitter</span><span class="p">(</span><span class="n">web_address</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes URL and returns its domain.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Checking type; converting lists, sets, and tuples to strings</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="p">((</span><span class="nb">type</span><span class="p">(</span><span class="n">web_address</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">web_address</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">web_address</span><span class="p">)</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">))</span> 
+        <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">web_address</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">web_address</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">web_address</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">web_address</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Domain_splitter requires a string&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Removing URL prefixes</span>
+    <span class="n">web_address</span> <span class="o">=</span> <span class="n">web_address</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;https://&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;https=://&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;www.&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Splitting URL into substrings</span>
+    <span class="n">split</span> <span class="o">=</span> <span class="n">web_address</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Taking the first substring; removing unwanted leading and trailing characters</span>
+    <span class="n">domain</span> <span class="o">=</span> <span class="n">split</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">domain</span></div>
+
+
+<div class="viewcode-block" id="is_domain"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.is_domain">[docs]</a><span class="k">def</span> <span class="nf">is_domain</span><span class="p">(</span><span class="n">domain_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks if string is a valid domain format.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting domain name from user input if none given</span>
+    <span class="k">if</span> <span class="n">domain_name</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">domain_name</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Domain name to check: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># If list is inputted, converts to string</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">domain_name</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">domain_name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">domain_name</span> <span class="o">=</span> <span class="n">domain_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="c1"># If set or tuple is inputted, converts to string</span>
+    <span class="k">if</span> <span class="p">(((</span><span class="nb">type</span><span class="p">(</span><span class="n">domain_name</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">domain_name</span><span class="p">)</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">))</span>
+        <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">domain_name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)):</span>
+        <span class="n">domain_name</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">domain_name</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="c1"># Raising errors if input is not string, list, or set</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">domain_name</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Domain name to check must be a string&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Checking the overall length of the domain name; should not exceed 253 characters</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">domain_name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">253</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Regular expression pattern to validate domain name:</span>
+    <span class="c1">#   - (?!-) ensures that the label doesn&#39;t start with a hyphen</span>
+    <span class="c1">#   - [A-Za-z0-9-]{1,63} ensures that the label contains 1 to 63 alphanumeric characters or hyphens</span>
+    <span class="c1">#   - (?&lt;!-) ensures that the label doesn&#39;t end with a hyphen</span>
+    <span class="c1">#   - \. matches a dot between labels</span>
+    <span class="c1">#   - [A-Za-z]{2,} matches a two or more character top-level domain (TLD)</span>
+    <span class="n">pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;^((?!-)[A-Za-z0-9-]{1,63}(?&lt;!-)\.)+[A-Za-z]{2,}$&#39;</span>
+
+    <span class="c1"># Checking if the domain name matches the pattern</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">domain_name</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="is_ip_address"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.is_ip_address">[docs]</a><span class="k">def</span> <span class="nf">is_ip_address</span><span class="p">(</span><span class="n">string</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks if string is a valid IP address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting string from user input if none given</span>
+    <span class="k">if</span> <span class="n">string</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;String to check: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Converting lists, sets, and tuples to strings; else raising TypeError</span>
+    <span class="k">if</span> <span class="p">((</span><span class="nb">type</span><span class="p">(</span><span class="n">domain_name</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">domain_name</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">domain_name</span><span class="p">)</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">)</span>
+        <span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">string</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;IP address to check must be a string&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Cleaning string</span>
+    <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="c1"># Checking if string is an IP address</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ipaddress</span><span class="o">.</span><span class="n">ip_address</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="is_registered_domain"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.is_registered_domain">[docs]</a><span class="k">def</span> <span class="nf">is_registered_domain</span><span class="p">(</span><span class="n">domain_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a boolean indicating whether a given domain name is registered.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">whois</span><span class="o">.</span><span class="n">whois</span><span class="p">(</span><span class="n">domain_name</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">domain_name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="correct_url"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.correct_url">[docs]</a><span class="k">def</span> <span class="nf">correct_url</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If URL lacks an HTTPS prefix, adds one.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="p">(</span><span class="n">url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;https://&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;http://&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://&#39;</span> <span class="o">+</span> <span class="n">url</span>
+    
+    <span class="k">return</span> <span class="n">url</span></div>
+
+<div class="viewcode-block" id="get_domain"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.get_domain">[docs]</a><span class="k">def</span> <span class="nf">get_domain</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a URL&#39;s domain.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Using check_url() to extract domain</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">domain</span> <span class="o">=</span> <span class="n">check_url</span><span class="p">(</span><span class="n">url</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        
+        <span class="c1"># If check_url() does not find a domain, falls back to domain_splitter()</span>
+        <span class="k">if</span> <span class="n">domain</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">domain</span> <span class="o">=</span> <span class="n">domain_splitter</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># If check_url() raises an error, falls back to domain_splitter()</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">domain</span> <span class="o">=</span> <span class="n">domain_splitter</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            
+    <span class="k">return</span> <span class="n">domain</span></div>
+
+<div class="viewcode-block" id="get_my_ip"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.get_my_ip">[docs]</a><span class="k">def</span> <span class="nf">get_my_ip</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns user&#39;s IP address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Trying to retrieve IP address using socket&#39;s gethostbyname() method</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">hostname</span><span class="o">=</span><span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span>
+        <span class="n">IPAddr</span><span class="o">=</span><span class="n">socket</span><span class="o">.</span><span class="n">gethostbyname</span><span class="p">(</span><span class="n">hostname</span><span class="p">)</span>
+    
+    
+    <span class="k">except</span><span class="p">:</span>
+        
+        <span class="c1"># If socket&#39;s gethostbyname() method raises an error, trying to use socket&#39;s getfqdn() method</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">IPAddr</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostbyname</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">getfqdn</span><span class="p">())</span> 
+            
+        <span class="k">except</span><span class="p">:</span>
+            
+            <span class="c1"># If socket&#39;s getfqdn() method raises an error, trying to use socket&#39;s connect() and getsockname() methods</span>
+            
+            <span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_DGRAM</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="s2">&quot;8.8.8.8&quot;</span><span class="p">,</span> <span class="mi">80</span><span class="p">))</span>
+            <span class="n">IPAddr</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">getsockname</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">IPAddr</span></div>
+
+<div class="viewcode-block" id="get_my_ip_geocode"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.get_my_ip_geocode">[docs]</a><span class="k">def</span> <span class="nf">get_my_ip_geocode</span><span class="p">():</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the geocode associated with user&#39;s IP address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">return</span> <span class="n">geocoder</span><span class="o">.</span><span class="n">ip</span><span class="p">(</span><span class="s1">&#39;me&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="get_ip_geocode"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.get_ip_geocode">[docs]</a><span class="k">def</span> <span class="nf">get_ip_geocode</span><span class="p">(</span><span class="n">ip_address</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the geocode associated with an IP address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting IP address from user input if none given</span>
+    <span class="k">if</span> <span class="n">ip_address</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">ip_address</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;IP address: &#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">geocoder</span><span class="o">.</span><span class="n">ip</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="get_ip_coordinates"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.get_ip_coordinates">[docs]</a><span class="k">def</span> <span class="nf">get_ip_coordinates</span><span class="p">(</span><span class="n">ip_address</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the coordinates associated with an IP address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting IP address from user input if none given</span>
+    <span class="k">if</span> <span class="n">ip_address</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">ip_address</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;IP address: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving geocode</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">geocoder</span><span class="o">.</span><span class="n">ip</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving coordinates</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">latlng</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">coords</span></div>
+
+<div class="viewcode-block" id="get_my_ip_coordinates"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.get_my_ip_coordinates">[docs]</a><span class="k">def</span> <span class="nf">get_my_ip_coordinates</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the coordinates associated with user&#39;s IP address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">return</span> <span class="n">get_ip_coordinates</span><span class="p">(</span><span class="n">ip_address</span> <span class="o">=</span> <span class="s1">&#39;me&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="get_ip_physical_location"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.get_ip_physical_location">[docs]</a><span class="k">def</span> <span class="nf">get_ip_physical_location</span><span class="p">(</span><span class="n">ip_address</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the address associated with an IP address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting IP address from user input if none given</span>
+    <span class="k">if</span> <span class="n">ip_address</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">ip_address</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;IP address: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving address associated with IP&#39;s coordinates using Geopy</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">geocoder</span><span class="o">.</span><span class="n">ip</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)</span><span class="o">.</span><span class="n">address</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">address</span></div>
+
+<div class="viewcode-block" id="get_my_ip_physical_location"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.get_my_ip_physical_location">[docs]</a><span class="k">def</span> <span class="nf">get_my_ip_physical_location</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the address associated with user&#39;s IP address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Retrieving geocode associated with user&#39;s IP</span>
+    <span class="n">location</span> <span class="o">=</span> <span class="n">get_my_ip_geocode</span><span class="p">()</span>
+    
+    <span class="c1"># Retrieving address</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">location</span><span class="o">.</span><span class="n">address</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">address</span></div>
+
+<div class="viewcode-block" id="lookup_ip_coordinates"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.lookup_ip_coordinates">[docs]</a><span class="k">def</span> <span class="nf">lookup_ip_coordinates</span><span class="p">(</span><span class="n">ip_address</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">site</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Google Maps&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Searches for coordinates associated with an IP address on a chosen mapping platform.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ip_address : str</span>
+<span class="sd">        IP address to look up.</span>
+<span class="sd">    site : str</span>
+<span class="sd">        name of mapping platform to use. Defaults to &#39;Google Maps&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting IP address from user input if none given</span>
+    <span class="k">if</span> <span class="n">ip_address</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">ip_address</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;IP address: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving coordinates</span>
+    <span class="n">coordinates</span> <span class="o">=</span> <span class="n">get_ip_coordinates</span><span class="p">(</span><span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_address</span><span class="p">)</span>
+    <span class="n">latitude</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">longitude</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    
+    <span class="c1"># Searching for coordinates on mapping platform</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">lookup_coordinates</span><span class="p">(</span><span class="n">latitude</span> <span class="o">=</span> <span class="n">latitude</span><span class="p">,</span> <span class="n">longitude</span> <span class="o">=</span> <span class="n">longitude</span><span class="p">,</span> <span class="n">site</span> <span class="o">=</span> <span class="n">site</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Lookup failed. Please check the IP address provided.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="domain_from_ip"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.domain_from_ip">[docs]</a><span class="k">def</span> <span class="nf">domain_from_ip</span><span class="p">(</span><span class="n">ip_address</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns domain address associated with IP address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Cleaning IP address</span>
+    <span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_address</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="c1"># Checking if string is a valid IP address</span>
+    <span class="k">if</span> <span class="n">is_ip_address</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        
+        <span class="c1"># Trying to retrieve domain</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostbyaddr</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">herror</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;No domain details found&quot;</span>
+        
+        <span class="c1"># Creating Pandas series for result</span>
+        <span class="n">output_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;domain_name&#39;</span><span class="p">,</span> <span class="s1">&#39;aliases&#39;</span><span class="p">,</span> <span class="s1">&#39;ip_address&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">output_series</span>
+    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Address given is not a valid IP address&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ip_from_domain"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.ip_from_domain">[docs]</a><span class="k">def</span> <span class="nf">ip_from_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns IP address associated with domain address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Checking if string is a valid domain address</span>
+    <span class="k">if</span> <span class="n">is_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">domain</span> <span class="o">=</span> <span class="n">domain_splitter</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+                
+        <span class="k">if</span> <span class="n">is_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">domain</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="c1"># Trying to retrieve IP address associated with domain</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">gethostbyname</span><span class="p">(</span><span class="n">domain</span><span class="p">))</span>
+        
+    <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">herror</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;No domain details found&quot;</span>
+    
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+            
+            
+
+<div class="viewcode-block" id="WhoisResult"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.WhoisResult">[docs]</a><span class="k">class</span> <span class="nc">WhoisResult</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is a class to store WhoIs result data.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    domain : str</span>
+<span class="sd">        domain to run WhoIs search on.</span>
+<span class="sd">    ip_address : str</span>
+<span class="sd">        IP address to run WhoIs search on.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ip_address</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialises WhoisResult object.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        domain : str</span>
+<span class="sd">            domain to run WhoIs search on.</span>
+<span class="sd">        ip_address : str</span>
+<span class="sd">            IP address to run WhoIs search on.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># Creating results dataframe and assigning as attribute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Metadata&#39;</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">object</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Category&#39;</span>
+        
+        <span class="c1"># Cleaning domain if given</span>
+        <span class="k">if</span> <span class="n">domain</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">domain</span> <span class="o">=</span> <span class="n">domain_splitter</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                
+                <span class="k">if</span> <span class="n">is_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                    <span class="n">domain</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># Cleaning IP address if given</span>
+        <span class="k">if</span> <span class="n">ip_address</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_address</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">is_ip_address</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="n">ip_address</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If a domain is given but no IP address, tries to retrieve associated IP address</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">domain</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ip_address</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_from_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">ip_address</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If an IP address is given but no domain, tries to retrieve associated domain</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">domain</span> <span class="o">==</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ip_address</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">domain</span> <span class="o">=</span> <span class="n">domain_from_ip</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)[</span><span class="s1">&#39;domain_name&#39;</span><span class="p">]</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">domain</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># Assigning domain and IP address as attribute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_address</span>
+        
+        <span class="c1"># Running domain WhoIs lookup</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">domain_whois</span><span class="p">(</span><span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span><span class="p">,</span> <span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_address</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+        
+        <span class="c1"># Running IP WhoIs lookup</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ip_whois</span><span class="p">(</span><span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span><span class="p">,</span> <span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_address</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+        
+        <span class="c1"># If IP WhoIs search has been successful, assigns RDAP result as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">RDAP_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">IPWhois_obj</span><span class="o">.</span><span class="n">lookup_rdap</span><span class="p">(</span><span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">RDAP_obj</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If IP WhoIs search has been successful, assigns RDAP result as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">results_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">RDAP_obj</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">results_dict</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If WhoIs search has been successful, assigns rdap_res result to results dataframe</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">rdap_res</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">RDAP_obj</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rdap_res</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Metadata&#39;</span><span class="p">])</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Category&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="p">])</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+        
+        <span class="c1"># If WhoIs search has been successful, assigns nir result as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;nir&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nir</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If WhoIs search has been successful, assigns asn result as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asn_registry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;asn_registry&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asn_registry</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If WhoIs search has been successful, assigns asn result as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;asn&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asn</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If WhoIs search has been successful, assigns asn_cidr result as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asn_cidr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;asn_cidr&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asn_cidr</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If WhoIs search has been successful, assigns asn country code result as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asn_country_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;asn_country_code&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asn_country_code</span> <span class="o">=</span> <span class="kc">None</span>
+        
+         <span class="c1"># If WhoIs search has been successful, assigns asn date country code result as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asn_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;asn_date&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asn_date</span> <span class="o">=</span> <span class="kc">None</span>
+        
+         <span class="c1"># If WhoIs search has been successful, assigns asn description code result as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asn_description</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;asn_description&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asn_description</span> <span class="o">=</span> <span class="kc">None</span>
+        
+         <span class="c1"># If WhoIs search has been successful, assigns query result as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If WhoIs search has been successful, assigns entities result as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;entities&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entities</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If WhoIs search has been successful, assigns raw result as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;raw&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If WhoIs search has been successful, assigns network result as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">network</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;network&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]),</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Metadata&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Category&#39;</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">network</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If WhoIs search has been successful, parses network events result and assigns as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">network_events</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp&#39;</span><span class="p">,</span> <span class="s1">&#39;actor&#39;</span><span class="p">])</span>
+            <span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;events&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span>
+            
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">events</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">i</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">network_events</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">network_events</span><span class="p">,</span> <span class="n">df</span><span class="p">])</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">network_events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">network_events</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="s1">&#39;network_events&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">events</span>
+            
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">network_events</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If WhoIs search has been successful, parses network notices result and assigns as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">network_notices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="s1">&#39;links&#39;</span><span class="p">])</span>
+            <span class="n">notices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;notices&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span>
+            
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">notices</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">i</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">network_notices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">network_notices</span><span class="p">,</span> <span class="n">df</span><span class="p">])</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">network_notices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">network_notices</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="s1">&#39;network_notices&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">notices</span>
+
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">network_notices</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If WhoIs search has been successful, parses objects result and assigns as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">objects_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;objects&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">dtype</span> <span class="o">=</span> <span class="nb">object</span><span class="p">)</span>
+            
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">objects_series</span><span class="p">:</span>
+                <span class="n">obj_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">i</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="p">,</span> <span class="n">obj_df</span><span class="p">])</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If WhoIs search has been successful, parses contacts result and assigns as an attribute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">contacts_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="p">[</span><span class="s1">&#39;contact&#39;</span><span class="p">]</span>
+    
+            <span class="bp">self</span><span class="o">.</span><span class="n">contacts</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">dtype</span> <span class="o">=</span> <span class="nb">object</span><span class="p">)</span>
+            
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">contacts_series</span><span class="p">:</span>
+                <span class="n">contact_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">i</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">contact_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">contact_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;address&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="kc">None</span>
+                
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">contact_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;phone&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">contact_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;phone&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="kc">None</span>
+                
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">contact_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;email&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">contact_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;email&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="kc">None</span>
+                
+                <span class="bp">self</span><span class="o">.</span><span class="n">contacts</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">contacts</span><span class="p">,</span> <span class="n">contact_df</span><span class="p">])</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="s1">&#39;contacts&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">contacts_series</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">contacts</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># Cleaning up results dataframe</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span> <span class="o">=</span> <span class="s1">&#39;Category&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;Category&#39;</span><span class="p">)</span>
+                        
+            
+<div class="viewcode-block" id="WhoisResult.domain_whois"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.WhoisResult.domain_whois">[docs]</a>    <span class="k">def</span> <span class="nf">domain_whois</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ip_address</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Performs a WhoIs lookup on a domain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Checking if domain address given is valid; trying to retrieve domain if not</span>
+        <span class="k">if</span> <span class="n">domain</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">is_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">domain</span> <span class="o">=</span> <span class="n">domain_splitter</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+                    <span class="k">if</span> <span class="n">is_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                        <span class="n">domain</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Checking if IP address given is valid</span>
+        <span class="k">if</span> <span class="n">ip_address</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_ip_address</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="n">ip_address</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># If only an IP address has been given, tries to retrieve associated domain address</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">domain</span> <span class="o">==</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ip_address</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">domain</span> <span class="o">=</span> <span class="n">domain_from_ip</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)[</span><span class="s1">&#39;domain_name&#39;</span><span class="p">]</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">domain</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">return</span>
+
+            <span class="c1"># Using recursion, runs a WhoIs lookup on the domain that is found</span>
+            <span class="n">domain_whois</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span><span class="p">,</span> <span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_address</span><span class="p">)</span>
+
+        <span class="c1"># Running WhoIs lookup on the domain given</span>
+        <span class="k">if</span> <span class="n">domain</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+
+                <span class="c1"># Trying to run WhoIs search on domain</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># Creating dataframe for output and inputting WhoIs result</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">whois</span><span class="o">.</span><span class="n">whois</span><span class="p">(</span><span class="n">domain</span><span class="p">)),</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Metadata&#39;</span><span class="p">])</span>
+                    <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Category&#39;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="p">,</span> <span class="n">df</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;domain&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">domain</span>
+
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+                <span class="c1"># Trying to retrieve associated IP address if none given</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">ip_address</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_from_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+                        <span class="k">except</span><span class="p">:</span>
+                            <span class="n">ip_address</span> <span class="o">=</span> <span class="kc">None</span>
+
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_address</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;ip_address&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ip_address</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span></div>
+    
+    
+<div class="viewcode-block" id="WhoisResult.ip_whois"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.WhoisResult.ip_whois">[docs]</a>    <span class="k">def</span> <span class="nf">ip_whois</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ip_address</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Performs a WhoIs lookup on an IP address.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Checking if domain address given is valid; trying to retrieve domain if not</span>
+        <span class="k">if</span> <span class="n">domain</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">is_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">domain</span> <span class="o">=</span> <span class="n">domain_splitter</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+                    <span class="k">if</span> <span class="n">is_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                        <span class="n">domain</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Checking if IP address given is valid</span>
+        <span class="k">if</span> <span class="n">ip_address</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_address</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">is_ip_address</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="n">ip_address</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># If only a domain has been given, tries to retrieve associated IP address</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">domain</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ip_address</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_from_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_address</span>
+
+                <span class="c1"># Using recursion, runs a WhoIs lookup on the IP address that is found</span>
+                <span class="n">ip_whois</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span><span class="p">,</span> <span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_address</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="c1"># Running WhoIs lookup on the IP address given</span>
+        <span class="k">if</span> <span class="n">ip_address</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                
+                <span class="c1"># Retrieving domain if none already given/found</span>
+                <span class="k">if</span> <span class="n">domain</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">domain</span> <span class="o">=</span> <span class="n">domain_from_ip</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)[</span><span class="s1">&#39;domain_name&#39;</span><span class="p">]</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="n">domain</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span>
+                
+                <span class="c1"># Running domain WhoIs on domain</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">domain_whois</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span><span class="p">,</span> <span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_address</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                
+                <span class="c1"># Formatting results as pandas.DataFrame</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">domain_reverse_search</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">domain_from_ip</span><span class="p">(</span><span class="n">ip_address</span><span class="p">),</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Metadata&#39;</span><span class="p">])</span>
+                    <span class="n">domain_reverse_search</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Category&#39;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="p">,</span> <span class="n">domain_reverse_search</span><span class="p">])</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                
+                <span class="c1"># Running WhoIs lookup on IP address</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">IPWhois_obj</span> <span class="o">=</span> <span class="n">IPWhois</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                
+                <span class="c1"># Retrieving geocode associated with IP address using Geopy</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ip_geocode</span> <span class="o">=</span> <span class="n">get_ip_geocode</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="s1">&#39;ip_geocode&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ip_geocode</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                
+                <span class="c1"># Retrieving coordinates associated with IP address using Geopy</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ip_coordinates</span> <span class="o">=</span> <span class="n">get_ip_coordinates</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="s1">&#39;ip_coordinates&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ip_coordinates</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                
+                <span class="c1"># Retrieving location associated with IP address using Geopy</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ip_location</span> <span class="o">=</span> <span class="n">get_ip_physical_location</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="s1">&#39;ip_location&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ip_location</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                
+                <span class="c1"># Assigning results to WhoisResult object</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="s1">&#39;ip_address&#39;</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ip_address</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="kc">None</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">IPWhois_obj</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Controls how WhoIsResult objects are represented in string form.&quot;&quot;&quot;</span>
+        
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_results</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WhoisResult.contents"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.WhoisResult.contents">[docs]</a>    <span class="k">def</span> <span class="nf">contents</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">            </span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Returns a list of object contents.&quot;&quot;&quot;</span>
+            
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="WhoisResult.copy"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.WhoisResult.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">            </span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Creates a copy of object.&quot;&quot;&quot;</span>
+            
+            <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div></div>
+    
+<div class="viewcode-block" id="domain_whois"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.domain_whois">[docs]</a><span class="k">def</span> <span class="nf">domain_whois</span><span class="p">(</span><span class="n">domain</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs a WhoIs lookup on a domain address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting domain address from user input if none given</span>
+    <span class="k">if</span> <span class="n">domain</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">domain</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Domain: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Raising error if domain given is not a string</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Domain must be a string&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Checking if domain is valid; if not, tries to extract domain</span>
+    <span class="k">if</span> <span class="n">is_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">domain</span> <span class="o">=</span> <span class="n">domain_splitter</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+    
+     <span class="c1"># Re-checking if domain is valid; if true, creates WhoisResult object</span>
+    <span class="k">if</span> <span class="n">is_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">WhoisResult</span><span class="p">(</span><span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span><span class="p">)</span>
+    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="domains_whois"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.domains_whois">[docs]</a><span class="k">def</span> <span class="nf">domains_whois</span><span class="p">(</span><span class="n">domains_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs a WhoIs lookup on a list or set of domain addresses.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Creating output dataframe</span>
+    <span class="n">output_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+    
+    <span class="c1"># Iterating through domains</span>
+    <span class="k">for</span> <span class="n">domain</span> <span class="ow">in</span> <span class="n">domains_list</span><span class="p">:</span>
+        
+        <span class="k">if</span> <span class="n">domain</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If domain is valid, running WhoIs lookup using WhoisResult class</span>
+            <span class="k">if</span> <span class="n">is_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">domain_whois</span><span class="p">(</span><span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span><span class="p">)</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">T</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># If domain is not valid, trying to retrieve domain</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">domain</span> <span class="o">=</span> <span class="n">domain_splitter</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                
+                <span class="c1"># If domain is valid, running WhoIs lookup using WhoisResult class</span>
+                <span class="k">if</span> <span class="n">is_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">df</span> <span class="o">=</span> <span class="n">domain_whois</span><span class="p">(</span><span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span><span class="p">)</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">T</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="k">continue</span>
+        
+        <span class="c1"># Concatanating results dataframes</span>
+        <span class="n">output_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">output_df</span><span class="p">,</span> <span class="n">df</span><span class="p">])</span>
+    
+    <span class="c1"># Cleaning and reformatting output dataframe</span>
+    <span class="n">output_df</span> <span class="o">=</span> <span class="n">output_df</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">output_df</span> <span class="o">=</span> <span class="n">output_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;domain&#39;</span><span class="p">)</span>
+    <span class="n">output_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s1">&#39;domain&#39;</span><span class="p">)</span>
+    <span class="n">output_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="k">return</span> <span class="n">output_df</span></div>
+        
+
+<div class="viewcode-block" id="ip_whois"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.ip_whois">[docs]</a><span class="k">def</span> <span class="nf">ip_whois</span><span class="p">(</span><span class="n">ip_address</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs a WhoIs lookup on an IP address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting domain address from user input if none given</span>
+    <span class="k">if</span> <span class="n">ip_address</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">ip_address</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;IP address: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Cleaning IP address</span>
+    <span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_address</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="c1"># Checking if IP address is valid; if true, running WhoIs lookup using WhoisResult class</span>
+    <span class="k">if</span> <span class="n">is_ip_address</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">WhoisResult</span><span class="p">(</span><span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip_address</span><span class="p">)</span>
+    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ips_whois"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.ips_whois">[docs]</a><span class="k">def</span> <span class="nf">ips_whois</span><span class="p">(</span><span class="n">ip_addresses</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs a WhoIs lookup on a list of IP addresses.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Creating output dataframe</span>
+    <span class="n">output_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+    
+    <span class="c1"># Iterating through IP addresses</span>
+    <span class="k">for</span> <span class="n">ip</span> <span class="ow">in</span> <span class="n">ip_addresses</span><span class="p">:</span>
+        
+        <span class="k">if</span> <span class="n">ip</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        
+        <span class="c1"># If IP address is inputted, tries to run a WhoIs lookup using WhoisResult class</span>
+        <span class="k">else</span><span class="p">:</span>
+        
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">ip_whois</span><span class="p">(</span><span class="n">ip_address</span> <span class="o">=</span> <span class="n">ip</span><span class="p">)</span><span class="o">.</span><span class="n">all_results</span><span class="o">.</span><span class="n">T</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        
+        <span class="c1"># Concatanating results dataframes</span>
+        <span class="n">output_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="n">output_df</span><span class="p">])</span>
+    
+    <span class="c1"># Cleaning and reformatting output dataframe</span>
+    <span class="n">output_df</span> <span class="o">=</span> <span class="n">output_df</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">output_df</span> <span class="o">=</span> <span class="n">output_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;ip_address&#39;</span><span class="p">)</span>
+    <span class="n">output_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s1">&#39;ip_address&#39;</span><span class="p">)</span>
+    <span class="n">output_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="k">return</span> <span class="n">output_df</span></div>
+
+
+<div class="viewcode-block" id="lookup_whois"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.lookup_whois">[docs]</a><span class="k">def</span> <span class="nf">lookup_whois</span><span class="p">(</span><span class="n">string</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs a WhoIs lookup on an inputted domain or IP address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting string from user input if none given</span>
+    <span class="k">if</span> <span class="n">string</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Search query: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Raising error if input is not a string object</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Search query must be a string&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Making a copy of string</span>
+    <span class="n">original_string</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+    
+    <span class="c1"># Cleaning string</span>
+    <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="c1"># If string is an IP address, runs IP WhoIs lookup</span>
+    <span class="k">if</span> <span class="n">is_ip_address</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ip_whois</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span>
+    
+    <span class="c1"># If string is not an IP address and is not a valid domain, tries to retrieve domain</span>
+    <span class="k">if</span> <span class="n">is_domain</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="n">domain_splitter</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+    
+    <span class="c1"># If string is a domain, runs domain WhoIs lookup</span>
+    <span class="k">if</span> <span class="n">is_domain</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">domain_whois</span><span class="p">(</span><span class="n">domain</span> <span class="o">=</span> <span class="n">string</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span>
+    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Search query &quot;</span><span class="si">{</span><span class="n">original_string</span><span class="si">}</span><span class="s1">&quot; contains neither a valid domain name nor a valid IP address&#39;</span><span class="p">)</span></div>
+    
+    
+    
+
+<span class="c1">## Functions for opening links and addresses</span>
+
+<div class="viewcode-block" id="open_url"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.open_url">[docs]</a><span class="k">def</span> <span class="nf">open_url</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Opens URL in the default web browser.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Opening browser</span>
+    <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="open_urls_list"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.open_urls_list">[docs]</a><span class="k">def</span> <span class="nf">open_urls_list</span><span class="p">(</span><span class="n">urls</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Opens list of URLs in the default web browser.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Iterating through URLs list</span>
+    <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">:</span>
+        <span class="n">open_url</span><span class="p">(</span><span class="n">link</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="open_url_source"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.open_url_source">[docs]</a><span class="k">def</span> <span class="nf">open_url_source</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Opens URL&#39;s source code in the default web browser.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Editing URL to view source</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;view-source:&#39;</span> <span class="o">+</span> <span class="n">url</span>
+    
+    <span class="c1"># Opening browser</span>
+    <span class="n">open_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="regex_check_then_open_url"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.regex_check_then_open_url">[docs]</a><span class="k">def</span> <span class="nf">regex_check_then_open_url</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if string is a web address or file path. If true, opens using default web browser.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Regex objects to check type</span>
+
+        <span class="n">www</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;www\.&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="n">https</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;https://&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="n">http</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;http://&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="n">file_address</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;file://&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="n">win_drive</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[A-Za-z]:</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="n">unc</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;</span><span class="se">\\\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="n">rel</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\.</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="n">mac</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;~/&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="n">mac_user</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;/Users&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="n">unix_par</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\.\.&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="n">unix_home</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+
+         <span class="c1"># Checking for matches</span>
+        <span class="n">www_match</span> <span class="o">=</span> <span class="n">www</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">https_match</span> <span class="o">=</span> <span class="n">https</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">http_match</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">file_address_match</span> <span class="o">=</span> <span class="n">file_address</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">win_drive_match</span> <span class="o">=</span> <span class="n">win_drive</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">unc_match</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">rel_match</span> <span class="o">=</span> <span class="n">rel</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">mac_match</span> <span class="o">=</span> <span class="n">mac</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">mac_user_match</span> <span class="o">=</span> <span class="n">mac_user</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">unix_p_match</span> <span class="o">=</span> <span class="n">unix_par</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">unix_h_match</span> <span class="o">=</span> <span class="n">unix_home</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        
+        <span class="c1"># Checking if string is a file path; if true, opens in web browser</span>
+        <span class="k">if</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">file_address_match</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span>
+                <span class="ow">or</span> <span class="p">((</span><span class="n">win_drive_match</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="p">((</span><span class="n">unc_match</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="p">((</span><span class="n">rel_match</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="p">((</span><span class="n">mac_match</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="p">((</span><span class="n">mac_user_match</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="p">((</span><span class="n">unix_p_match</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="p">((</span><span class="n">unix_h_match</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="p">):</span>
+                <span class="n">is_filepath</span> <span class="o">=</span> <span class="s1">&#39;True&#39;</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;file://&#39;</span> <span class="o">+</span> <span class="n">url</span>
+                <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        
+        <span class="c1"># Checking if string is a web address; if true, opens in web browser</span>
+        <span class="k">if</span> <span class="p">(</span>
+                <span class="p">((</span><span class="n">www_match</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="p">(</span><span class="n">https_match</span> <span class="o">==</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="p">(</span><span class="n">http_match</span> <span class="o">==</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="p">):</span>
+                <span class="n">is_webaddress</span> <span class="o">=</span> <span class="s1">&#39;True&#39;</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://&#39;</span> <span class="o">+</span> <span class="n">url</span>
+                <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="c1"># Checking if string is a web address; if true, opens in web browser</span>
+        <span class="k">if</span> <span class="p">(((</span><span class="n">https_match</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="p">((</span><span class="n">http_match</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="p">):</span>
+                <span class="n">is_webaddress</span> <span class="o">=</span> <span class="s1">&#39;True&#39;</span>
+                <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        
+        <span class="c1"># If checks have failed, searches for string on Google</span>
+        <span class="k">if</span> <span class="p">((</span>
+            <span class="n">www_match</span> <span class="o">==</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">https_match</span> <span class="o">==</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">http_match</span> <span class="o">==</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">file_address_match</span> <span class="o">==</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">win_drive_match</span> <span class="o">==</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">unc_match</span> <span class="o">==</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">rel_match</span> <span class="o">==</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">mac_match</span> <span class="o">==</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">mac_user_match</span> <span class="o">==</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">unix_p_match</span> <span class="o">==</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">unix_h_match</span> <span class="o">==</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;,&#39;</span> <span class="ow">or</span> <span class="s1">&#39;, &#39;</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">url</span>
+            <span class="p">):</span>
+                <span class="n">query</span> <span class="o">=</span> <span class="n">quote</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+                <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;https://www.google.com/search?hl=en&amp;q=&#39;</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="n">url_base</span> <span class="o">+</span> <span class="n">query</span>
+                <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="url_to_valid_attr_name"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.webanalysis.url_to_valid_attr_name">[docs]</a><span class="k">def</span> <span class="nf">url_to_valid_attr_name</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts URL to a string which can be used as a Python object attribute name.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">name</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;https://&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;http://&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;www.&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&amp;&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">,</span> <span class="s1">&#39;_at_&#39;</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;{&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;!&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&lt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">name</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

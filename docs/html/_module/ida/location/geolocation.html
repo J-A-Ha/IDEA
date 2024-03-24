@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.location.geolocation &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">ida</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ida.location.geolocation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ida.location.geolocation</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Functions for geolocation analysis&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">..core.basics</span> <span class="kn">import</span> <span class="n">map_inf_to_1</span><span class="p">,</span> <span class="n">map_inf_to_0</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">geopy</span>
+<span class="kn">from</span> <span class="nn">geopy</span> <span class="kn">import</span> <span class="n">distance</span>
+<span class="kn">from</span> <span class="nn">geopy.geocoders</span> <span class="kn">import</span> <span class="n">Nominatim</span>
+<span class="kn">import</span> <span class="nn">geocoder</span>
+<span class="kn">import</span> <span class="nn">webbrowser</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote</span><span class="p">,</span> <span class="n">urlparse</span>
+
+
+<span class="c1"># Instructions for creating satellite imagery-based maps: https://blog.goodaudience.com/geo-libraries-in-python-plotting-current-fires-bffef9fe3fb7</span>
+
+<div class="viewcode-block" id="get_coordinates_geocode"><a class="viewcode-back" href="../../../ida.location.html#ida.location.geolocation.get_coordinates_geocode">[docs]</a><span class="k">def</span> <span class="nf">get_coordinates_geocode</span><span class="p">(</span><span class="n">coordinates</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">latitude</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">longitude</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">geopy</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">Location</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes co-ordinate as a string and returns its associated geocode.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coordinates : list or str, default : None</span>
+<span class="sd">        list or string of coordinates to use. Defaults to None.</span>
+<span class="sd">    latitude : str</span>
+<span class="sd">        if no list or string of coordinates given, requests for latitude.</span>
+<span class="sd">    longitude : str</span>
+<span class="sd">        if no list or string of coordinates given, requests for longitude.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : geopy.location.Location</span>
+<span class="sd">        a geopy geocode.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Formatting coordinates if inputted</span>
+    <span class="k">if</span> <span class="n">coordinates</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        
+        <span class="k">if</span> <span class="n">coordinates</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;{&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">)</span>
+            <span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">coordinates</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+            
+            <span class="n">latitude</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">longitude</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        
+        
+    <span class="c1"># Requesting latitude from user input if no latitude given</span>
+    <span class="k">if</span> <span class="n">latitude</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">latitude</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;latitude: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Requesting latitude from user input if no latitude given</span>
+    <span class="k">if</span> <span class="n">longitude</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">longitude</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;longitude: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Formatting latitude and longitude as strings</span>
+    <span class="n">latitude</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">latitude</span><span class="p">)</span>
+    <span class="n">longitude</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">longitude</span><span class="p">)</span>
+        
+    <span class="c1"># Initialising Nominatim geolocator object</span>
+    <span class="n">geolocator</span> <span class="o">=</span> <span class="n">Nominatim</span><span class="p">(</span><span class="n">user_agent</span><span class="o">=</span><span class="s2">&quot;location_app&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving geocode</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">geolocator</span><span class="o">.</span><span class="n">reverse</span><span class="p">([</span><span class="n">latitude</span><span class="p">,</span> <span class="n">longitude</span><span class="p">])</span>
+    
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="get_location_geocode"><a class="viewcode-back" href="../../../ida.location.html#ida.location.geolocation.get_location_geocode">[docs]</a><span class="k">def</span> <span class="nf">get_location_geocode</span><span class="p">(</span><span class="n">location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">geopy</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">Location</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes location as a string and returns its associated Geopy geocode.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    location : str</span>
+<span class="sd">        an address or location name. Defaults to requesting from user input.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : geopy.location.Location</span>
+<span class="sd">        a geopy geocode.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting location from user input if none given</span>
+    <span class="k">if</span> <span class="n">location</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Location details: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Initialising Nominatim geolocator object</span>
+    <span class="n">geolocator</span> <span class="o">=</span> <span class="n">Nominatim</span><span class="p">(</span><span class="n">user_agent</span><span class="o">=</span><span class="s2">&quot;location_app&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving geocode and handling errors</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">geolocator</span><span class="o">.</span><span class="n">geocode</span><span class="p">(</span><span class="n">location</span><span class="p">)</span>
+    
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Lookup failed. Please check the location details provided.&#39;</span><span class="p">)</span></div>
+
+        
+<div class="viewcode-block" id="get_coordinates_location"><a class="viewcode-back" href="../../../ida.location.html#ida.location.geolocation.get_coordinates_location">[docs]</a><span class="k">def</span> <span class="nf">get_coordinates_location</span><span class="p">(</span><span class="n">coordinates</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">latitude</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">longitude</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes coordinates and returns the location associated by Geopy&#39;s geocoder.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coordinates : list or str, default : None</span>
+<span class="sd">        list or string of coordinates to use. Defaults to None.</span>
+<span class="sd">    latitude : str</span>
+<span class="sd">        if no list or string of coordinates given, requests for latitude.</span>
+<span class="sd">    longitude : str</span>
+<span class="sd">        if no list or string of coordinates given, requests for longitude.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : str</span>
+<span class="sd">        an address or location name associated with the inputted coordinates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Formatting coordinates if inputted</span>
+    <span class="k">if</span> <span class="n">coordinates</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        
+        <span class="k">if</span> <span class="n">coordinates</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;{&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">)</span>
+            <span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">coordinates</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+            
+            <span class="n">latitude</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">longitude</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    
+    <span class="c1"># Requesting latitude from user input if no latitude given</span>
+    <span class="k">if</span> <span class="n">latitude</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">latitude</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;latitude: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Requesting latitude from user input if no latitude given</span>
+    <span class="k">if</span> <span class="n">longitude</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">longitude</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;longitude: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Formatting latitude and longitude as strings</span>
+    <span class="n">latitude</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">latitude</span><span class="p">)</span>
+    <span class="n">longitude</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">longitude</span><span class="p">)</span>
+    
+    <span class="c1"># Joining coordinates into one string for geopy</span>
+    <span class="n">coordinates</span> <span class="o">=</span> <span class="n">latitude</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span> <span class="o">+</span> <span class="n">longitude</span>
+    
+    <span class="c1"># Initialising Nominatim geolocator object</span>
+    <span class="n">geolocator</span> <span class="o">=</span> <span class="n">Nominatim</span><span class="p">(</span><span class="n">user_agent</span><span class="o">=</span><span class="s2">&quot;location_app&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving geocode and handling errors</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">geolocator</span><span class="o">.</span><span class="n">geocode</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span><span class="o">.</span><span class="n">address</span>
+    
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Lookup failed. Please check the coordinates provided.&#39;</span><span class="p">)</span></div>
+
+        
+<div class="viewcode-block" id="get_location_coordinates"><a class="viewcode-back" href="../../../ida.location.html#ida.location.geolocation.get_location_coordinates">[docs]</a><span class="k">def</span> <span class="nf">get_location_coordinates</span><span class="p">(</span><span class="n">location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes location details and returns the coordinates associated by Geopy&#39;s geocoder.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    location : str</span>
+<span class="sd">        an address or location name. Defaults to requesting from user input.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : list</span>
+<span class="sd">        list of coordinates associated with the inputted coordinates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting location from user input if none given</span>
+    <span class="k">if</span> <span class="n">location</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Location details: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Initialising Nominatim geolocator object</span>
+    <span class="n">geolocator</span> <span class="o">=</span> <span class="n">Nominatim</span><span class="p">(</span><span class="n">user_agent</span><span class="o">=</span><span class="s2">&quot;location_app&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving geocode and handling errors</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">output_location</span> <span class="o">=</span> <span class="n">geolocator</span><span class="o">.</span><span class="n">geocode</span><span class="p">(</span><span class="n">location</span><span class="p">)</span>
+    
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span>
+    
+    <span class="c1"># Outputting latitude and longitude if lookup was successful</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">output_location</span><span class="o">.</span><span class="n">latitude</span><span class="p">,</span> <span class="n">output_location</span><span class="o">.</span><span class="n">longitude</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Lookup failed. Please check the location details provided.&#39;</span><span class="p">)</span></div>
+    
+
+
+<div class="viewcode-block" id="get_location_address"><a class="viewcode-back" href="../../../ida.location.html#ida.location.geolocation.get_location_address">[docs]</a><span class="k">def</span> <span class="nf">get_location_address</span><span class="p">(</span><span class="n">location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes location details and returns the address associated by Geopy&#39;s geocoder.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    location : str</span>
+<span class="sd">        a location name. Defaults to requesting from user input.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : str</span>
+<span class="sd">        an address associated with the inputted location name.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting location from user input if none given</span>
+    <span class="k">if</span> <span class="n">location</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Location details: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Initialising Nominatim geolocator object</span>
+    <span class="n">geolocator</span> <span class="o">=</span> <span class="n">Nominatim</span><span class="p">(</span><span class="n">user_agent</span><span class="o">=</span><span class="s2">&quot;location_app&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving address and handling errors</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">geolocator</span><span class="o">.</span><span class="n">geocode</span><span class="p">(</span><span class="n">location</span><span class="p">)</span><span class="o">.</span><span class="n">address</span>
+    
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Lookup failed. Please check the location details provided.&#39;</span><span class="p">)</span></div>
+
+        
+<div class="viewcode-block" id="lookup_coordinates"><a class="viewcode-back" href="../../../ida.location.html#ida.location.geolocation.lookup_coordinates">[docs]</a><span class="k">def</span> <span class="nf">lookup_coordinates</span><span class="p">(</span><span class="n">coordinates</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">latitude</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">longitude</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">site</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Google Maps&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Searches for coordinates on inputted mapping platform.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coordinates : list or str, default : None</span>
+<span class="sd">        list or string of coordinates to use. Defaults to None.</span>
+<span class="sd">    latitude : str</span>
+<span class="sd">        if no list or string of coordinates given, requests for latitude.</span>
+<span class="sd">    longitude : str</span>
+<span class="sd">        if no list or string of coordinates given, requests for longitude.</span>
+<span class="sd">    site : str</span>
+<span class="sd">        name of mapping platform to use to lookup coordinates. Defaults to &#39;Google Maps&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Formatting coordinates if inputted</span>
+    <span class="k">if</span> <span class="n">coordinates</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        
+        <span class="k">if</span> <span class="n">coordinates</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;{&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">)</span>
+            <span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">coordinates</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">latitude</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">longitude</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    
+    
+    <span class="c1"># Requesting latitude from user input if no latitude given</span>
+    <span class="k">if</span> <span class="n">latitude</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">latitude</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;latitude: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Requesting latitude from user input if no latitude given</span>
+    <span class="k">if</span> <span class="n">longitude</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">longitude</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;longitude: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Formatting latitude and longitude as strings</span>
+    <span class="n">latitude</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">latitude</span><span class="p">)</span>
+    <span class="n">longitude</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">longitude</span><span class="p">)</span>
+    
+    <span class="c1"># Initialising sites list variable</span>
+    <span class="n">sites_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;google earth&#39;</span><span class="p">,</span> <span class="s1">&#39;google maps&#39;</span><span class="p">,</span> <span class="s1">&#39;wikimapia&#39;</span><span class="p">]</span>
+    
+    <span class="c1"># If site to search is Google Earth, searching Google Earth</span>
+    <span class="k">if</span> <span class="n">site</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;google earth&#39;</span><span class="p">:</span>
+        <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;https://earth.google.com/web/@&#39;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">url_base</span> <span class="o">+</span> <span class="n">latitude</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="n">longitude</span>
+        <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># If site to search is Google Maps, searching Google Maps</span>
+    <span class="k">if</span> <span class="n">site</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;google maps&#39;</span><span class="p">:</span>
+        <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;https://www.google.com/maps/search/?api=1&amp;query=&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">quote</span><span class="p">(</span><span class="n">latitude</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="n">longitude</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">url_base</span> <span class="o">+</span> <span class="n">query</span>
+        <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># If site to search is Wikimapia, searching Wikimapia</span>
+    <span class="k">if</span> <span class="n">site</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;wikimapia&#39;</span><span class="p">:</span>
+        <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;http://wikimapia.org/#lang=en&amp;&#39;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">url_base</span> <span class="o">+</span> <span class="s1">&#39;lat=&#39;</span><span class="o">+</span> <span class="n">latitude</span> <span class="o">+</span> <span class="s1">&#39;&amp;lon=&#39;</span> <span class="o">+</span> <span class="n">longitude</span>
+        <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># If site to search is &#39;all&#39;, using recursion to search Google Earth, Google Maps, and Wikipedia</span>
+    <span class="k">elif</span> <span class="n">site</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sites_list</span><span class="p">:</span>
+            <span class="n">lookup_coordinates</span><span class="p">(</span><span class="n">latitude</span> <span class="o">=</span> <span class="n">latitude</span><span class="p">,</span> <span class="n">longitude</span> <span class="o">=</span> <span class="n">longitude</span><span class="p">,</span> <span class="n">site</span> <span class="o">=</span> <span class="n">item</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="lookup_location"><a class="viewcode-back" href="../../../ida.location.html#ida.location.geolocation.lookup_location">[docs]</a><span class="k">def</span> <span class="nf">lookup_location</span><span class="p">(</span><span class="n">location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">site</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Google Maps&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Searches for coordinates on inputted mapping platform.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    location : str</span>
+<span class="sd">        an address or location name. Defaults to requesting from user input.</span>
+<span class="sd">    site : str</span>
+<span class="sd">        name of mapping platform to use to lookup coordinates. Defaults to &#39;Google Maps&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting location from user input if none given</span>
+    <span class="k">if</span> <span class="n">location</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Location details: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving coordinates for location using Geopy</span>
+    <span class="n">coordinates</span> <span class="o">=</span> <span class="n">get_location_coordinates</span><span class="p">(</span><span class="n">location</span> <span class="o">=</span> <span class="n">location</span><span class="p">)</span>
+    
+    <span class="c1"># Running lookop_coordinates() on coordinates</span>
+    <span class="k">return</span> <span class="n">lookup_coordinates</span><span class="p">(</span><span class="n">latitude</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">longitude</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">site</span> <span class="o">=</span> <span class="n">site</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="coordinates_distance"><a class="viewcode-back" href="../../../ida.location.html#ida.location.geolocation.coordinates_distance">[docs]</a><span class="k">def</span> <span class="nf">coordinates_distance</span><span class="p">(</span><span class="n">first_coordinates</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">second_coordinates</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;kilometers&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the distance between two coordinates in units provided by user.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    first_coordinates : str or list</span>
+<span class="sd">        the first set of coordinates for comparison.</span>
+<span class="sd">    second_coordinates : str or list</span>
+<span class="sd">        the second set of coordinates for comparison.</span>
+<span class="sd">    units : str</span>
+<span class="sd">        units to use for distance calculation. Defaults to &#39;kilometers&#39;.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : tuple</span>
+<span class="sd">        a tuple containing the distance and its units.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">first_coordinates</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="n">first_coordinates</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">first_coordinates</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">second_coordinates</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="n">second_coordinates</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">second_coordinates</span><span class="p">)</span>
+    
+    <span class="c1"># Requesting first set of coordinates from user input if none given</span>
+    <span class="k">if</span> <span class="n">first_coordinates</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">first_coordinates</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;First coordinates: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Requesting second set of coordinates from user input if none given</span>
+    <span class="k">if</span> <span class="n">second_coordinates</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">second_coordinates</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Second coordinates: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Calculating distance in inputted units </span>
+    <span class="k">if</span> <span class="n">units</span> <span class="o">==</span> <span class="s1">&#39;kilometers&#39;</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">distance</span><span class="o">.</span><span class="n">geodesic</span><span class="p">(</span><span class="n">first_coordinates</span><span class="p">,</span> <span class="n">second_coordinates</span><span class="p">)</span><span class="o">.</span><span class="n">kilometers</span>
+    
+    <span class="k">if</span> <span class="n">units</span> <span class="o">==</span> <span class="s1">&#39;miles&#39;</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">distance</span><span class="o">.</span><span class="n">geodesic</span><span class="p">(</span><span class="n">first_coordinates</span><span class="p">,</span> <span class="n">second_coordinates</span><span class="p">)</span><span class="o">.</span><span class="n">miles</span>
+        
+    <span class="k">return</span> <span class="n">res</span><span class="p">,</span> <span class="n">units</span></div>
+
+<div class="viewcode-block" id="locations_distance"><a class="viewcode-back" href="../../../ida.location.html#ida.location.geolocation.locations_distance">[docs]</a><span class="k">def</span> <span class="nf">locations_distance</span><span class="p">(</span><span class="n">first_location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">second_location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;kilometers&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the distance between two coordinates, using units provided by user.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    first_location : str</span>
+<span class="sd">        the first location name or address for comparison.</span>
+<span class="sd">    second_location : str</span>
+<span class="sd">        the second location name or address for comparison.</span>
+<span class="sd">    units : str</span>
+<span class="sd">        units to use for distance calculation. Defaults to &#39;kilometers&#39;.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : tuple</span>
+<span class="sd">        a tuple containing the distance and its units.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting first location from user input if none given</span>
+    <span class="k">if</span> <span class="n">first_location</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">first_location</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;First location: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Requesting second location from user input if none given</span>
+    <span class="k">if</span> <span class="n">second_location</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">second_location</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Second location: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving coordinates associated with location from Geopy</span>
+    <span class="n">first_coordinates</span> <span class="o">=</span> <span class="n">get_location_coordinates</span><span class="p">(</span><span class="n">first_location</span><span class="p">)</span>
+    <span class="n">second_coordinates</span> <span class="o">=</span> <span class="n">get_location_coordinates</span><span class="p">(</span><span class="n">second_location</span><span class="p">)</span>
+    
+    <span class="c1"># Calculating and outputting distance between coordinates</span>
+    <span class="k">return</span> <span class="n">coordinates_distance</span><span class="p">(</span>
+                                <span class="n">first_coordinates</span> <span class="o">=</span> <span class="n">first_coordinates</span><span class="p">,</span> 
+                                <span class="n">second_coordinates</span> <span class="o">=</span> <span class="n">second_coordinates</span><span class="p">,</span> 
+                                <span class="n">units</span> <span class="o">=</span> <span class="n">units</span>
+                                <span class="p">)</span></div>
+
+<div class="viewcode-block" id="normalised_coordinates_distance"><a class="viewcode-back" href="../../../ida.location.html#ida.location.geolocation.normalised_coordinates_distance">[docs]</a><span class="k">def</span> <span class="nf">normalised_coordinates_distance</span><span class="p">(</span><span class="n">first_coordinates</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">second_coordinates</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;kilometers&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the normalised distance between two coordinates, using units provided by user.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    first_coordinates : str or list</span>
+<span class="sd">        the first set of coordinates for comparison.</span>
+<span class="sd">    second_coordinates : str or list</span>
+<span class="sd">        the second set of coordinates for comparison.</span>
+<span class="sd">    units : str</span>
+<span class="sd">        units to use for distance calculation. Defaults to &#39;kilometers&#39;.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : float</span>
+<span class="sd">        a value between 0 and 1, where 0 is 0 distance and 1 is infinite distance.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Normalisation function: map_inf_to_1()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Calculating distance</span>
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">coordinates_distance</span><span class="p">(</span><span class="n">first_coordinates</span><span class="p">,</span> <span class="n">second_coordinates</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+    
+    <span class="c1"># Normalising distance</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">map_inf_to_1</span><span class="p">(</span><span class="n">distance</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    
+    <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="normalised_coordinates_distance_inverse"><a class="viewcode-back" href="../../../ida.location.html#ida.location.geolocation.normalised_coordinates_distance_inverse">[docs]</a><span class="k">def</span> <span class="nf">normalised_coordinates_distance_inverse</span><span class="p">(</span><span class="n">first_coordinates</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">second_coordinates</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;kilometers&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the inverse of the normalised distance between two coordinates.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    first_coordinates : str or list</span>
+<span class="sd">        the first set of coordinates for comparison.</span>
+<span class="sd">    second_coordinates : str or list</span>
+<span class="sd">        the second set of coordinates for comparison.</span>
+<span class="sd">    units : str</span>
+<span class="sd">        units to use for distance calculation. Defaults to &#39;kilometers&#39;.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : float</span>
+<span class="sd">        a value between 0 and 1, where 1 is 0 distance and 0 is infinite distance.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Normalisation function: map_inf_to_0()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Calculating distance</span>
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">coordinates_distance</span><span class="p">(</span><span class="n">first_coordinates</span><span class="p">,</span> <span class="n">second_coordinates</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+    
+    <span class="c1"># Normalising distance</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">map_inf_to_0</span><span class="p">(</span><span class="n">distance</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="normalised_locations_distance"><a class="viewcode-back" href="../../../ida.location.html#ida.location.geolocation.normalised_locations_distance">[docs]</a><span class="k">def</span> <span class="nf">normalised_locations_distance</span><span class="p">(</span><span class="n">first_location</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">second_location</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;kilometers&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the normalised distance between two locations.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    first_location : str</span>
+<span class="sd">        the first location name or address for comparison.</span>
+<span class="sd">    second_location : str</span>
+<span class="sd">        the second location name or address for comparison.</span>
+<span class="sd">    units : str</span>
+<span class="sd">        units to use for distance calculation. Defaults to &#39;kilometers&#39;.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : float</span>
+<span class="sd">        a value between 0 and 1, where 0 is 0 distance and 1 is infinity.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Normalisation function: map_inf_to_1()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Calculating distance</span>
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">locations_distance</span><span class="p">(</span><span class="n">first_location</span><span class="p">,</span> <span class="n">second_location</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+    
+    <span class="c1"># Normalising distance</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">map_inf_to_1</span><span class="p">(</span><span class="n">distance</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    
+    <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="normalised_locations_distance_inverse"><a class="viewcode-back" href="../../../ida.location.html#ida.location.geolocation.normalised_locations_distance_inverse">[docs]</a><span class="k">def</span> <span class="nf">normalised_locations_distance_inverse</span><span class="p">(</span><span class="n">first_location</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">second_location</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;kilometers&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the inverse of the normalised distance between two coordinates.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    first_location : str</span>
+<span class="sd">        the first location name or address for comparison.</span>
+<span class="sd">    second_location : str</span>
+<span class="sd">        the second location name or address for comparison.</span>
+<span class="sd">    units : str</span>
+<span class="sd">        units to use for distance calculation. Defaults to &#39;kilometers&#39;.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : float</span>
+<span class="sd">        a value between 0 and 1, where 1 is 0 distance and 0 is infinity.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Normalisation function: map_inf_to_0()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Calculating distance</span>
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">locations_distance</span><span class="p">(</span><span class="n">first_location</span><span class="p">,</span> <span class="n">second_location</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+    
+    <span class="c1"># Normalising distance</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">map_inf_to_0</span><span class="p">(</span><span class="n">distance</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    
+    <span class="k">return</span> <span class="n">result</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

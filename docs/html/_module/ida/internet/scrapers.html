@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.internet.scrapers &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">ida</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ida.internet.scrapers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ida.internet.scrapers</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Functions for scraping web data&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">.webanalysis</span> <span class="kn">import</span> <span class="n">correct_url</span><span class="p">,</span> <span class="n">get_domain</span><span class="p">,</span> <span class="n">is_domain</span><span class="p">,</span> <span class="n">domain_splitter</span><span class="p">,</span> <span class="n">is_registered_domain</span><span class="p">,</span> <span class="n">url_to_valid_attr_name</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">requests_html</span> <span class="kn">import</span> <span class="n">HTML</span>
+<span class="kn">from</span> <span class="nn">requests_html</span> <span class="kn">import</span> <span class="n">HTMLSession</span>
+
+<span class="kn">import</span> <span class="nn">cloudscraper</span>
+
+<span class="kn">from</span> <span class="nn">trafilatura</span> <span class="kn">import</span> <span class="n">fetch_url</span><span class="p">,</span> <span class="n">extract</span><span class="p">,</span> <span class="n">feeds</span><span class="p">,</span> <span class="n">sitemaps</span><span class="p">,</span> <span class="n">extract_metadata</span>
+
+<span class="kn">from</span> <span class="nn">urllib</span> <span class="kn">import</span> <span class="n">robotparser</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote</span><span class="p">,</span> <span class="n">quote_plus</span><span class="p">,</span> <span class="n">urlparse</span>
+
+<span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+
+<span class="kn">from</span> <span class="nn">courlan</span> <span class="kn">import</span> <span class="n">extract_domain</span><span class="p">,</span> <span class="n">normalize_url</span><span class="p">,</span> <span class="n">clean_url</span><span class="p">,</span> <span class="n">validate_url</span><span class="p">,</span> <span class="n">sample_urls</span><span class="p">,</span> <span class="n">check_url</span><span class="p">,</span> <span class="n">scrub_url</span><span class="p">,</span> <span class="n">is_external</span>
+
+<span class="kn">from</span> <span class="nn">selenium</span> <span class="kn">import</span> <span class="n">webdriver</span>
+<span class="kn">from</span> <span class="nn">selenium.webdriver.common.by</span> <span class="kn">import</span> <span class="n">By</span>
+
+
+<div class="viewcode-block" id="get_url_source"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.scrapers.get_url_source">[docs]</a><span class="k">def</span> <span class="nf">get_url_source</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the HTTP response for the provided URL. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    url : str</span>
+<span class="sd">        URL of the page to scrape.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    response : object</span>
+<span class="sd">        HTTP response object from cloudscraper.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Correcting errors in URL (e.g. missing HTTPS prefix)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">correct_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+   
+    <span class="c1"># Trying to scrape site using CloudScraper to avoid Cloudflare protection</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">scraper</span> <span class="o">=</span> <span class="n">cloudscraper</span><span class="o">.</span><span class="n">create_scraper</span><span class="p">()</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">scraper</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span>
+    
+    <span class="c1"># Handling errors</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Scraper failed&#39;</span><span class="p">)</span></div>
+
+        
+<div class="viewcode-block" id="scrape_url_html"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.scrapers.scrape_url_html">[docs]</a><span class="k">def</span> <span class="nf">scrape_url_html</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scrapes raw HTML code from the provided URL. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    url : str</span>
+<span class="sd">        URL of the page to scrape.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    HTML : str</span>
+<span class="sd">        the returned HTML as a string.&quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Correcting errors in URL (e.g. missing HTTPS prefix)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">correct_url</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving HTTP response</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">get_url_source</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># Extracting HTML</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span>
+    
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="scrape_url_metadata"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.scrapers.scrape_url_metadata">[docs]</a><span class="k">def</span> <span class="nf">scrape_url_metadata</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scrapes metadata from the provided URL. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    url : str </span>
+<span class="sd">        URL of the page to scrape.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    metadata : dict</span>
+<span class="sd">        the URL&#39;s metadata as a dictionary.&quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Correcting errors in URL (e.g. missing HTTPS prefix)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">correct_url</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># Using trafilatura to fetch site data</span>
+    <span class="n">downloaded</span> <span class="o">=</span> <span class="n">fetch_url</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># Creating empty result variable to avoid errors</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="c1"># Extracting metadata and assigning to result variable</span>
+    <span class="k">if</span> <span class="n">downloaded</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">extract_metadata</span><span class="p">(</span><span class="n">downloaded</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            
+            <span class="c1"># Converting result to dictionary</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+        
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="scrape_url_rawtext"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.scrapers.scrape_url_rawtext">[docs]</a><span class="k">def</span> <span class="nf">scrape_url_rawtext</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scrapes raw text from the provided URL. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    url : str </span>
+<span class="sd">        URL of the page to scrape.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    rawtext : str</span>
+<span class="sd">        the URL&#39;s raw text as a string.&quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Correcting errors in URL (e.g. missing HTTPS prefix)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">correct_url</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># Using trafilatura to fetch site data</span>
+    <span class="n">downloaded</span> <span class="o">=</span> <span class="n">fetch_url</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">downloaded</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        
+        <span class="c1"># Extracting raw text and assigning to result variable</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">extract</span><span class="p">(</span><span class="n">downloaded</span><span class="p">,</span> <span class="n">include_tables</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_comments</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_images</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_links</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="scrape_url_xml"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.scrapers.scrape_url_xml">[docs]</a><span class="k">def</span> <span class="nf">scrape_url_xml</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scrapes data from the provided URL and returns in XML format. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    url : str </span>
+<span class="sd">        URL of the page to scrape.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    xml : str</span>
+<span class="sd">        the URL&#39;s data as an XML-formatted string.&quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Correcting errors in URL (e.g. missing HTTPS prefix)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">correct_url</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># Using trafilatura to fetch site data</span>
+    <span class="n">downloaded</span> <span class="o">=</span> <span class="n">fetch_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">downloaded</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        
+        <span class="c1"># Extracting data and assigning to result variable</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">extract</span><span class="p">(</span><span class="n">downloaded</span><span class="p">,</span> <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;xml&quot;</span><span class="p">,</span> <span class="n">include_tables</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_comments</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_images</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_links</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="scrape_url_json"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.scrapers.scrape_url_json">[docs]</a><span class="k">def</span> <span class="nf">scrape_url_json</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scrapes data from the provided URL and returns in JSON format. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    url : str </span>
+<span class="sd">        URL of the page to scrape.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    json : str</span>
+<span class="sd">        the URL&#39;s data as a JSON-formatted string.&quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Correcting errors in URL (e.g. missing HTTPS prefix)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">correct_url</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># Using trafilatura to fetch site data</span>
+    <span class="n">downloaded</span> <span class="o">=</span> <span class="n">fetch_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">downloaded</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        
+        <span class="c1"># Extracting data and assigning to result variable</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">extract</span><span class="p">(</span><span class="n">downloaded</span><span class="p">,</span> <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;json&quot;</span><span class="p">,</span> <span class="n">include_tables</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_comments</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_images</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_links</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="scrape_url_csv"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.scrapers.scrape_url_csv">[docs]</a><span class="k">def</span> <span class="nf">scrape_url_csv</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scrapes data from the provided URL and returns in CSV format. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    url : str </span>
+<span class="sd">        URL of the page to scrape.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    csv : str</span>
+<span class="sd">        the URL&#39;s data as a CSV-formatted string.&quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Correcting errors in URL (e.g. missing HTTPS prefix)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">correct_url</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># Using trafilatura to fetch site data</span>
+    <span class="n">downloaded</span> <span class="o">=</span> <span class="n">fetch_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">downloaded</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        
+        <span class="c1"># Extracting data and assigning to result variable</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">extract</span><span class="p">(</span><span class="n">downloaded</span><span class="p">,</span> <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;csv&quot;</span><span class="p">,</span> <span class="n">include_tables</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_comments</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_images</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_links</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="scrape_url_to_dict"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.scrapers.scrape_url_to_dict">[docs]</a><span class="k">def</span> <span class="nf">scrape_url_to_dict</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scrapes data from provided URL and returns as a dictionary. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    url : str </span>
+<span class="sd">        URL of the page to scrape.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : dict </span>
+<span class="sd">        the URL&#39;s data as a dictionary.&quot;&quot;&quot;</span>
+    
+    <span class="c1"># Retrieving site data as a JSON-formatted string</span>
+    <span class="n">result_json</span> <span class="o">=</span> <span class="n">scrape_url_json</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># Avoiding errors if no result retrieved</span>
+    <span class="k">if</span> <span class="n">result_json</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Converting JSON to dictionary</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">result_json</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">result</span></div>
+    
+
+<div class="viewcode-block" id="scrape_url_links"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.scrapers.scrape_url_links">[docs]</a><span class="k">def</span> <span class="nf">scrape_url_links</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scrapes links from provided URL and returns as a list. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    url : str </span>
+<span class="sd">        URL of the page to scrape.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    links : list </span>
+<span class="sd">        the URL&#39;s links as a list.&quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Scraping data</span>
+    <span class="n">scraped_data</span> <span class="o">=</span> <span class="n">scrape_url_html</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># Making HTML soup</span>
+    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">scraped_data</span><span class="p">,</span> <span class="s2">&quot;html.parser&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Selecting dividers</span>
+    <span class="n">href_select</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>  
+    
+    <span class="c1"># Extracting links as list and applying corrections </span>
+    <span class="n">links</span> <span class="o">=</span> <span class="p">[</span><span class="n">correct_link_errors</span><span class="p">(</span><span class="n">source_domain</span> <span class="o">=</span> <span class="n">url</span><span class="p">,</span> <span class="n">url</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">href_select</span> <span class="k">if</span> <span class="s1">&#39;href&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">attrs</span><span class="p">]</span>
+    
+    <span class="k">return</span> <span class="n">links</span></div>
+
+    
+<div class="viewcode-block" id="scrape_url"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.scrapers.scrape_url">[docs]</a><span class="k">def</span> <span class="nf">scrape_url</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">parse_pdf</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;dict&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scrapes data from URL. Returns any HTML code, text, links, and metatdata found. </span>
+<span class="sd">    </span>
+<span class="sd">    Defaults to returning a dictionary.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    url : str </span>
+<span class="sd">        URL of the page to scrape.</span>
+<span class="sd">    parse_pdf : bool</span>
+<span class="sd">        whether to detect PDFs and parse them using PDF parser.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : object</span>
+<span class="sd">        the result in a user-selected format.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+        
+    <span class="c1"># Cleaning URL</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="c1"># Running scrapers depending on the format specified</span>
+    
+    <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">output</span> <span class="o">==</span> <span class="s1">&#39;html&#39;</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">scrape_url_html</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="p">(</span><span class="n">output</span> <span class="o">==</span> <span class="s1">&#39;raw&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">output</span> <span class="o">==</span> <span class="s1">&#39;rawtext&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">output</span> <span class="o">==</span> <span class="s1">&#39;raw text&#39;</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">scrape_url_rawtext</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">output</span> <span class="o">==</span> <span class="s1">&#39;xml&#39;</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">scrape_url_xml</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">output</span> <span class="o">==</span> <span class="s1">&#39;json&#39;</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">scrape_url_json</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">output</span> <span class="o">==</span> <span class="s1">&#39;csv&#39;</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">scrape_url_csv</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># If the output format selected is dictionary, scrapes all data available</span>
+    <span class="k">if</span> <span class="n">output</span> <span class="o">==</span> <span class="s1">&#39;dict&#39;</span><span class="p">:</span>
+        
+        <span class="c1"># Running main scraper</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">scrape_url_to_dict</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+        
+        <span class="c1"># Appending html to output dict</span>
+        <span class="n">result</span><span class="p">[</span><span class="s1">&#39;html&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scrape_url_html</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+        
+        <span class="c1"># Extracting links</span>
+        <span class="n">current_url</span> <span class="o">=</span> <span class="n">url</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;html&#39;</span><span class="p">],</span> <span class="s2">&quot;html.parser&quot;</span><span class="p">)</span>
+        <span class="n">href_select</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+        <span class="n">links</span> <span class="o">=</span> <span class="p">[</span><span class="n">correct_link_errors</span><span class="p">(</span><span class="n">source_domain</span> <span class="o">=</span> <span class="n">current_url</span><span class="p">,</span> <span class="n">url</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">href_select</span> <span class="k">if</span> <span class="s1">&#39;href&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">attrs</span><span class="p">]</span>
+        <span class="n">result</span><span class="p">[</span><span class="s1">&#39;links&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">links</span>
+        
+        <span class="c1"># If parse_pdf is selected, check if URL is PDF and parse</span>
+        
+        <span class="k">if</span> <span class="n">parse_pdf</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            
+            <span class="k">if</span> <span class="n">url</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.pdf&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                
+                <span class="c1"># Running PDF downloader and parser</span>
+                <span class="n">pdf_parsed</span> <span class="o">=</span> <span class="n">read_pdf_url</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+                
+                <span class="c1"># Appending result</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pdf_parsed</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;author&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pdf_parsed</span><span class="p">[</span><span class="s1">&#39;authors&#39;</span><span class="p">]</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;raw_text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pdf_parsed</span><span class="p">[</span><span class="s1">&#39;raw&#39;</span><span class="p">]</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pdf_parsed</span><span class="p">[</span><span class="s1">&#39;full_text&#39;</span><span class="p">]</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pdf_parsed</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;links&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pdf_parsed</span><span class="p">[</span><span class="s1">&#39;links&#39;</span><span class="p">]</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;format&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;PDF&#39;</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;document&#39;</span>
+        
+        <span class="c1"># Scraping URL metadata using trafilatura</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">scrape_url_metadata</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">metadata</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        
+        <span class="c1"># Appending URL</span>
+        <span class="n">result</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">url</span>
+        
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="scrape_urls_list"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.scrapers.scrape_urls_list">[docs]</a><span class="k">def</span> <span class="nf">scrape_urls_list</span><span class="p">(</span><span class="n">urls</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">parse_pdf</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;dataframe&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scrapes list of URLs. Returns any HTML code, text, links, and metatdata found. </span>
+<span class="sd">    </span>
+<span class="sd">    Defaults to returning a dataframe.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    url : str </span>
+<span class="sd">        URL of the page to scrape.</span>
+<span class="sd">    parse_pdf : bool</span>
+<span class="sd">        whether to detect PDFs and parse them using PDF parser.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : object </span>
+<span class="sd">        the result in a user-selected format.&quot;&quot;&quot;</span>
+    
+    <span class="c1"># Initialising dictionary for results</span>
+    <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="c1"># Iterating through links and scraping</span>
+    <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">:</span>
+        <span class="n">output_dict</span><span class="p">[</span><span class="n">link</span><span class="p">]</span> <span class="o">=</span> <span class="n">scrape_url</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">link</span><span class="p">,</span> <span class="n">parse_pdf</span> <span class="o">=</span> <span class="n">parse_pdf</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39;dict&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># If selected output is dataframe, converting to dataframe</span>
+    <span class="k">if</span> <span class="n">output</span> <span class="o">==</span> <span class="s1">&#39;dataframe&#39;</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">output_dict</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">output_dict</span>
+    
+    <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="scrape_dynamic_page"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.scrapers.scrape_dynamic_page">[docs]</a><span class="k">def</span> <span class="nf">scrape_dynamic_page</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scrapes dynamic webpages using provided URL. Returns a dictionary of data. Uses Selenium.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    url : str </span>
+<span class="sd">        URL of the page to scrape.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : dict </span>
+<span class="sd">        the result as a dictionary.&quot;&quot;&quot;</span>
+    
+    <span class="c1"># Initialising dictionary for results</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Correcting errors in URL (e.g. missing HTTPS prefix)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">correct_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># Initialising Selenium webdriver</span>
+    <span class="n">driver</span> <span class="o">=</span> <span class="n">webdriver</span><span class="o">.</span><span class="n">Chrome</span><span class="p">()</span>
+    
+    <span class="c1"># Retrieving data</span>
+    <span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># Selecting CSS elements</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_elements</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">CSS_SELECTOR</span><span class="p">,</span> <span class="s2">&quot;.grid a[data-testid=&#39;link&#39;]&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Iterating through results, retrieving attributes, and adding to output dictionary</span>
+    <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+        
+        <span class="n">name</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">accessible_name</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">index</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="c1"># Retrieving text</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">output_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">text</span>
+    
+    <span class="k">return</span> <span class="n">output_dict</span></div>
+
+
+<div class="viewcode-block" id="scrape_google_search"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.scrapers.scrape_google_search">[docs]</a><span class="k">def</span> <span class="nf">scrape_google_search</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetches and parses Google Search results. Offers an alternative to using Google&#39;s API. </span>
+<span class="sd">    </span>
+<span class="sd">    Requires user to manually copy and paste Google search source code to avoid Google&#39;s CAPCHA system.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    query : str</span>
+<span class="sd">        query to search. Defaults to requesting from user input.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;This function will open your web browser. When prompted, copy and paste the code that appears into the space provided</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Launching web search</span>
+    <span class="n">search_web</span><span class="p">(</span>
+                <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="p">,</span>
+                <span class="n">search_engine</span> <span class="o">=</span> <span class="s1">&#39;Google&#39;</span><span class="p">,</span>
+                <span class="n">view_source</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="p">)</span>
+    
+    <span class="c1"># Requesting search source code from user</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Search page code: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Parsing result</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">parse_google_result</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="crawler_scraper"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.scrapers.crawler_scraper">[docs]</a><span class="k">def</span> <span class="nf">crawler_scraper</span><span class="p">(</span><span class="n">current_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">full</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scraper used by web crawler. Returns result as a tuple. </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    current_url : str </span>
+<span class="sd">        URL of the page to scrape.</span>
+<span class="sd">    full : bool </span>
+<span class="sd">        whether to run complete scrape.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : tuple </span>
+<span class="sd">        the result as a tuple containing BeautifulSoup object, the scraped data, and links.&quot;&quot;&quot;</span>
+    
+    <span class="c1"># If full is selected, runs a complete scrape using tools</span>
+    <span class="k">if</span> <span class="n">full</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        
+        <span class="c1"># Tries to scrape URL using standard scraper function</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">scraped_data</span> <span class="o">=</span> <span class="n">scrape_url</span><span class="p">(</span><span class="n">current_url</span><span class="p">)</span>
+        
+        <span class="c1"># If scraper fails, runs cleaners on URL and tries to run it again</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">current_url</span> <span class="o">=</span> <span class="n">clean_url</span><span class="p">(</span><span class="n">current_url</span><span class="p">)</span>
+            <span class="n">current_url</span> <span class="o">=</span> <span class="n">scrub_url</span><span class="p">(</span><span class="n">current_url</span><span class="p">)</span>
+            <span class="n">current_url</span> <span class="o">=</span> <span class="n">normalize_url</span><span class="p">(</span><span class="n">current_url</span><span class="p">)</span>
+            <span class="n">current_url</span> <span class="o">=</span> <span class="n">correct_url</span><span class="p">(</span><span class="n">current_url</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">scraped_data</span> <span class="o">=</span> <span class="n">scrape_url</span><span class="p">(</span><span class="n">current_url</span><span class="p">)</span>
+
+            <span class="k">except</span><span class="p">:</span>
+                
+                <span class="c1"># If standard scraper fails twice, tries to use cloudscraper&#39;s basic scraper</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">scraper</span> <span class="o">=</span> <span class="n">cloudscraper</span><span class="o">.</span><span class="n">create_scraper</span><span class="p">()</span>
+                    <span class="n">res</span> <span class="o">=</span> <span class="n">scraper</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">current_url</span><span class="p">)</span>
+                    <span class="n">scraped_data</span><span class="p">[</span><span class="s1">&#39;html&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">content</span>
+                    
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="n">scraped_data</span><span class="p">[</span><span class="s1">&#39;html&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    
+    <span class="c1"># If full is not selected, runs cloudscraper&#39;s basic scraper</span>
+    <span class="k">else</span><span class="p">:</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            
+            <span class="n">scraper</span> <span class="o">=</span> <span class="n">cloudscraper</span><span class="o">.</span><span class="n">create_scraper</span><span class="p">()</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">scraper</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">current_url</span><span class="p">)</span>
+            <span class="n">scraped_data</span><span class="p">[</span><span class="s1">&#39;html&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">content</span>
+            
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">scraped_data</span><span class="p">[</span><span class="s1">&#39;html&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        
+    <span class="c1"># Making HTML soup</span>
+    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">scraped_data</span><span class="p">[</span><span class="s1">&#39;html&#39;</span><span class="p">],</span> <span class="s2">&quot;html.parser&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Selecting dividers</span>
+    <span class="n">href_select</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>  
+    
+    <span class="c1"># Extracting links</span>
+    <span class="n">links</span> <span class="o">=</span> <span class="p">[</span><span class="n">correct_link_errors</span><span class="p">(</span><span class="n">source_domain</span> <span class="o">=</span> <span class="n">current_url</span><span class="p">,</span> <span class="n">url</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">href_select</span> <span class="k">if</span> <span class="s1">&#39;href&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">attrs</span><span class="p">]</span>          
+    
+    <span class="c1"># Returning results as tuple</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">soup</span><span class="p">,</span> <span class="n">scraped_data</span><span class="p">,</span> <span class="n">links</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

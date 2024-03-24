@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.socmed.sherlock_interpreter &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">ida</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ida.socmed.sherlock_interpreter</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ida.socmed.sherlock_interpreter</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions for interacting with the Sherlock module using the Python interpreter. </span>
+
+<span class="sd">Developed by making edits to the sherlock.main() function.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">.sherlock.result</span> <span class="kn">import</span> <span class="n">QueryStatus</span>
+<span class="kn">from</span> <span class="nn">.sherlock.result</span> <span class="kn">import</span> <span class="n">QueryResult</span>
+<span class="kn">from</span> <span class="nn">.sherlock.notify</span> <span class="kn">import</span> <span class="n">QueryNotifyPrint</span>
+<span class="kn">from</span> <span class="nn">.sherlock.sites</span> <span class="kn">import</span> <span class="n">SitesInformation</span>
+<span class="kn">from</span> <span class="nn">.sherlock.sherlock</span> <span class="kn">import</span> <span class="n">module_name</span><span class="p">,</span> <span class="n">__version__</span><span class="p">,</span> <span class="n">SherlockFuturesSession</span><span class="p">,</span> <span class="n">get_response</span><span class="p">,</span> <span class="n">check_for_parameter</span><span class="p">,</span> <span class="n">multiple_usernames</span><span class="p">,</span> <span class="n">sherlock</span><span class="p">,</span> <span class="n">timeout_check</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">main</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">platform</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">monotonic</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">requests_futures.sessions</span> <span class="kn">import</span> <span class="n">FuturesSession</span>
+<span class="kn">from</span> <span class="nn">torrequest</span> <span class="kn">import</span> <span class="n">TorRequest</span>
+
+<div class="viewcode-block" id="search_username"><a class="viewcode-back" href="../../../ida.socmed.html#ida.socmed.sherlock_interpreter.search_username">[docs]</a><span class="k">def</span> <span class="nf">search_username</span><span class="p">(</span><span class="n">username</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">site_list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sites_json</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">nsfw</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">tor</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">unique_tor</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">proxy</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span> <span class="n">browse</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">print_all</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39;dataframe&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs a Sherlock search for a username.</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    username: str </span>
+<span class="sd">        username to search for.</span>
+<span class="sd">    site_list : list</span>
+<span class="sd">        list of sites to search.</span>
+<span class="sd">    sites_json : str</span>
+<span class="sd">        JSON of site data.</span>
+<span class="sd">    nsfw : bool</span>
+<span class="sd">        whether to include NSFW websites in result.</span>
+<span class="sd">    tor : str</span>
+<span class="sd">        Tor node to route search through.</span>
+<span class="sd">    unique_tor : bool</span>
+<span class="sd">        whether to use a unique Tor instance.</span>
+<span class="sd">    proxy : str</span>
+<span class="sd">        proxy to route search through.</span>
+<span class="sd">    timeout : int</span>
+<span class="sd">        length of time to wait before timeout.</span>
+<span class="sd">    browse : bool</span>
+<span class="sd">        whether to open results in browser.</span>
+<span class="sd">    verbose : bool</span>
+<span class="sd">        whether to return verbose output.</span>
+<span class="sd">    print_all : bool</span>
+<span class="sd">        whether to print all results, including failed results.</span>
+<span class="sd">    output : str</span>
+<span class="sd">        type of data format to output. Defaults to dataframe.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result</span>
+<span class="sd">        a set of usernames found by Sherlock.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Setting version</span>
+        <span class="n">version_string</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;%(prog)s </span><span class="si">{</span><span class="n">__version__</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">requests</span><span class="o">.</span><span class="n">__description__</span><span class="si">}</span><span class="s2">:  </span><span class="si">{</span><span class="n">requests</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;Python:  </span><span class="si">{</span><span class="n">platform</span><span class="o">.</span><span class="n">python_version</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
+    
+        <span class="c1"># Check for newer version of Sherlock. If it exists, let the user know about it</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s2">&quot;https://raw.githubusercontent.com/sherlock-project/sherlock/master/sherlock/sherlock.py&quot;</span>
+            <span class="p">)</span>
+
+            <span class="n">remote_version</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;__version__ = &quot;(.*)&quot;&#39;</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">local_version</span> <span class="o">=</span> <span class="n">__version__</span>
+
+            <span class="k">if</span> <span class="n">remote_version</span> <span class="o">!=</span> <span class="n">local_version</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s2">&quot;Update Available!</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;You are running version </span><span class="si">{</span><span class="n">local_version</span><span class="si">}</span><span class="s2">. Version </span><span class="si">{</span><span class="n">remote_version</span><span class="si">}</span><span class="s2"> is available at https://github.com/sherlock-project/sherlock&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;A problem occurred while checking for an update: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span>
+    
+    <span class="c1"># Requesting username from user input if none provided</span>
+    <span class="k">if</span> <span class="n">username</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">username</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Username: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Argument check</span>
+    <span class="c1"># TODO regex check on proxy</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">tor</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">proxy</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Tor and Proxy cannot be set at the same time.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Make prompts</span>
+    <span class="k">if</span> <span class="n">proxy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using the proxy: &quot;</span> <span class="o">+</span> <span class="n">proxy</span><span class="p">)</span>
+
+    <span class="c1"># Outputting warnings regarding Tor use</span>
+    <span class="k">if</span> <span class="n">tor</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using Tor to make requests&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;Warning: some websites might refuse connecting over Tor, so note that using this option might increase connection errors.&quot;</span>
+        <span class="p">)</span>
+
+
+    <span class="c1"># Create object with all information about sites we are aware of.</span>
+    <span class="k">if</span> <span class="n">sites_json</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">local</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">local</span> <span class="o">=</span> <span class="kc">True</span>
+        
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">local</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">sites</span> <span class="o">=</span> <span class="n">SitesInformation</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;sherlock/resources/data.json&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sites</span> <span class="o">=</span> <span class="n">SitesInformation</span><span class="p">(</span><span class="n">sites_json</span><span class="p">)</span>
+    
+    <span class="c1"># Raising exception</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR:  </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sites</span> <span class="o">=</span> <span class="n">SitesInformation</span><span class="p">()</span>
+    
+    <span class="c1"># Removing NSFW sites if not wanted</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">nsfw</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">sites</span><span class="o">.</span><span class="n">remove_nsfw_sites</span><span class="p">()</span>
+
+    <span class="c1"># Create original dictionary from SitesInformation() object.</span>
+    <span class="c1"># Eventually, the rest of the code will be updated to use the new object</span>
+    <span class="c1"># directly, but this will glue the two pieces together.</span>
+    <span class="n">site_data_all</span> <span class="o">=</span> <span class="p">{</span><span class="n">site</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">site</span><span class="o">.</span><span class="n">information</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">sites</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">site_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Not desired to look at a sub-set of sites</span>
+        <span class="n">site_data</span> <span class="o">=</span> <span class="n">site_data_all</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># User desires to selectively run queries on a sub-set of the site list.</span>
+        <span class="c1"># Make sure that the sites are supported &amp; build up pruned site database.</span>
+        <span class="n">site_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">site_missing</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">site_list</span><span class="p">:</span>
+            <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">existing_site</span> <span class="ow">in</span> <span class="n">site_data_all</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">site</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">existing_site</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                    <span class="n">site_data</span><span class="p">[</span><span class="n">existing_site</span><span class="p">]</span> <span class="o">=</span> <span class="n">site_data_all</span><span class="p">[</span><span class="n">existing_site</span><span class="p">]</span>
+                    <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Build up list of sites not supported for future error message.</span>
+                <span class="n">site_missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">site</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">site_missing</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: Desired sites not found: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">site_missing</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+<span class="c1">#         if not site_data:</span>
+<span class="c1">#             sys.exit(1)</span>
+
+    <span class="c1"># Create notify object for query results.</span>
+    <span class="n">query_notify</span> <span class="o">=</span> <span class="n">QueryNotifyPrint</span><span class="p">(</span>
+        <span class="n">result</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">print_all</span><span class="o">=</span><span class="n">print_all</span><span class="p">,</span> <span class="n">browse</span><span class="o">=</span><span class="n">browse</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Run report on all specified users.</span>
+    
+    <span class="n">all_usernames</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">username</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">all_usernames</span> <span class="o">=</span> <span class="p">[</span><span class="n">username</span><span class="p">]</span>
+    
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">username</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+        
+        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">username</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">check_for_parameter</span><span class="p">(</span><span class="n">u</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">multiple_usernames</span><span class="p">(</span><span class="n">u</span><span class="p">):</span>
+                    <span class="n">all_usernames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">all_usernames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+    
+    <span class="n">results_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    
+    <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">all_usernames</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">sherlock</span><span class="p">(</span>
+            <span class="n">u</span><span class="p">,</span>
+            <span class="n">site_data</span><span class="p">,</span>
+            <span class="n">query_notify</span><span class="p">,</span>
+            <span class="n">tor</span><span class="o">=</span><span class="n">tor</span><span class="p">,</span>
+            <span class="n">unique_tor</span><span class="o">=</span><span class="n">unique_tor</span><span class="p">,</span>
+            <span class="n">proxy</span><span class="o">=</span><span class="n">proxy</span><span class="p">,</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">results_dict</span><span class="p">[</span><span class="n">u</span><span class="p">]</span> <span class="o">=</span> <span class="n">results</span>
+        
+    <span class="n">query_notify</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">output</span> <span class="o">==</span> <span class="s1">&#39;dataframe&#39;</span><span class="p">:</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">results_dict</span><span class="p">[</span><span class="n">username</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">object</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Claimed&#39;</span><span class="p">]</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;site&#39;</span>
+            
+            <span class="n">res</span> <span class="o">=</span> <span class="n">df</span>
+            
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">results_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">results_dict</span><span class="p">[</span><span class="n">u</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">object</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+                <span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Claimed&#39;</span><span class="p">]</span>
+                <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;site&#39;</span>
+                <span class="n">output</span><span class="p">[</span><span class="n">u</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span>
+        
+        <span class="k">return</span> <span class="n">res</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

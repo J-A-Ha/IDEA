@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.internet.shodan &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">ida</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ida.internet.shodan</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ida.internet.shodan</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Functions for searching and analysing Shodan&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">shodan</span> <span class="kn">import</span> <span class="n">Shodan</span>
+
+
+<div class="viewcode-block" id="set_api_key"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.shodan.set_api_key">[docs]</a><span class="k">def</span> <span class="nf">set_api_key</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialises Shodan API key as variable local environment.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    key : str</span>
+<span class="sd">        Shodan API key. Defaults to requesting from user input.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    key : str</span>
+<span class="sd">        the inputted API key as a variable in the global environment.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting API key from user if none given</span>
+    <span class="k">if</span> <span class="n">key</span>  <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Shodan API key: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Initialising key in global environment</span>
+    <span class="k">global</span> <span class="n">SHODAN_API_KEY</span>
+    <span class="n">SHODAN_API_KEY</span> <span class="o">=</span> <span class="n">key</span>
+    
+    <span class="k">return</span> <span class="n">SHODAN_API_KEY</span></div>
+
+
+<div class="viewcode-block" id="init_api"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.shodan.init_api">[docs]</a><span class="k">def</span> <span class="nf">init_api</span><span class="p">(</span><span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Shodan</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialises Shodan API using an API key.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    api_key : str or None</span>
+<span class="sd">        Shodan API key. If None, searches for key in environment; if none set, sets key.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : Shodan</span>
+<span class="sd">        a Shodan API instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Checking if an API key has been provided</span>
+    <span class="k">if</span> <span class="n">api_key</span>  <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        
+        <span class="k">if</span> <span class="s1">&#39;SHODAN_API_KEY&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">globals</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="c1"># Requesting API key from user</span>
+            <span class="n">set_api_key</span><span class="p">()</span>
+        
+        <span class="c1"># Retrieving API key from globals</span>
+        <span class="k">global</span> <span class="n">SHODAN_API_KEY</span>
+        <span class="n">api_key</span> <span class="o">=</span> <span class="n">SHODAN_API_KEY</span>
+    
+    <span class="c1"># Initialising Shodan API object as a global variable</span>
+    <span class="k">global</span> <span class="n">SHODAN_API</span>
+    <span class="n">SHODAN_API</span> <span class="o">=</span> <span class="n">Shodan</span><span class="p">(</span><span class="n">api_key</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">SHODAN_API</span></div>
+
+
+<div class="viewcode-block" id="search_ip"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.shodan.search_ip">[docs]</a><span class="k">def</span> <span class="nf">search_ip</span><span class="p">(</span><span class="n">ip</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Searches Shodan API for an IP address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Checking if Shodan API key has been set</span>
+    <span class="k">if</span> <span class="s1">&#39;SHODAN_API_KEY&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">globals</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="c1"># If not, requesting API key from user</span>
+        <span class="n">set_api_key</span><span class="p">()</span>
+    
+    <span class="c1"># Retrieving API key from globals</span>
+    <span class="k">global</span> <span class="n">SHODAN_API_KEY</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">SHODAN_API_KEY</span>
+    
+    <span class="c1"># If no API session initialised, initialising Shodan API as global variable</span>
+    <span class="k">if</span> <span class="s1">&#39;SHODAN_API&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">globals</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">init_api</span><span class="p">(</span><span class="n">api_key</span> <span class="o">=</span> <span class="n">key</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving Shodan API object</span>
+    <span class="k">global</span> <span class="n">SHODAN_API</span>
+    <span class="n">api</span> <span class="o">=</span> <span class="n">SHODAN_API</span>
+    
+    <span class="c1"># Requesting IP address from user if none provided</span>
+    <span class="k">if</span> <span class="n">ip</span>  <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">ip</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;IP address: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Searching Shodan for IP address</span>
+    <span class="n">ipinfo</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">host</span><span class="p">(</span><span class="n">ip</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">ipinfo</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

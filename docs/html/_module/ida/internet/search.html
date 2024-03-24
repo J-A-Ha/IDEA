@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.internet.search &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">ida</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ida.internet.search</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ida.internet.search</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Functions for launching internet searches.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">.webanalysis</span> <span class="kn">import</span> <span class="n">open_url</span><span class="p">,</span> <span class="n">open_url_source</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">webbrowser</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote</span>
+
+<div class="viewcode-block" id="search_web"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.search.search_web">[docs]</a><span class="k">def</span> <span class="nf">search_web</span><span class="p">(</span>
+                <span class="n">query</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span>
+                <span class="n">search_engine</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Google&#39;</span><span class="p">,</span>
+                <span class="n">view_source</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+              <span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Launches web search in the default web browser using user&#39;s query.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    query : str</span>
+<span class="sd">        query to search. Defaults to requesting from user input.</span>
+<span class="sd">    search_engine : str</span>
+<span class="sd">        name of search engine to use. Defaults to &#39;Google&#39;.</span>
+<span class="sd">    view_source : bool</span>
+<span class="sd">        whether to open the page source code of the search result.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting query from user input if none given</span>
+    <span class="k">if</span> <span class="n">query</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Search: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Reformatting query</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">quote</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    
+    <span class="c1"># Creating base for URL depending on search engine specified</span>
+    <span class="k">if</span> <span class="n">search_engine</span> <span class="o">==</span> <span class="s1">&#39;Google&#39;</span><span class="p">:</span>
+            <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;https://www.google.com/search?hl=en&amp;q=&#39;</span>
+        
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">search_engine</span> <span class="o">==</span> <span class="s1">&#39;DuckDuckGo&#39;</span><span class="p">:</span>
+            <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;https://duckduckgo.com/?q=&#39;</span>
+
+        <span class="k">if</span> <span class="n">search_engine</span> <span class="o">==</span> <span class="s1">&#39;Bing&#39;</span><span class="p">:</span>
+            <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;https://www.bing.com/search?q=&#39;</span>
+    
+    <span class="c1"># Creating search URL</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">url_base</span> <span class="o">+</span> <span class="n">query</span>
+    
+    <span class="c1"># If view_source is True, opens the URL&#39;s source code</span>
+    <span class="k">if</span> <span class="n">view_source</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">open_url_source</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">open_url</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span></div>
+         
+            
+<div class="viewcode-block" id="multi_search_web"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.search.multi_search_web">[docs]</a><span class="k">def</span> <span class="nf">multi_search_web</span><span class="p">(</span><span class="n">iteration_terms</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span>
+                        <span class="n">query</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span>
+                        <span class="n">search_engine</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Google&#39;</span><span class="p">,</span>
+                        <span class="n">view_source</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Launches multiple web searches by iterating on a query through a list of terms.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    iteration_terms : list, set, or tuple</span>
+<span class="sd">        iterable of strings to insert into the search query.</span>
+<span class="sd">    query : str</span>
+<span class="sd">        query to search. The function replaces &#39;___&#39; with the iteration term. Defaults to requesting from user input.</span>
+<span class="sd">    search_engine : str</span>
+<span class="sd">        name of search engine to use. Defaults to &#39;Google&#39;.</span>
+<span class="sd">    view_source : bool</span>
+<span class="sd">        whether to open the page source code of the search result.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting iteration terms from user input if none given</span>
+    <span class="k">if</span> <span class="n">iteration_terms</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">iteration_terms</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Type search terms to iterate separated by &quot;,&quot;: &#39;</span><span class="p">)</span>
+        <span class="n">iteration_terms</span> <span class="o">=</span> <span class="n">iteration_terms</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="n">iteration_terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">iteration_terms</span><span class="p">]</span>
+    
+    <span class="c1"># Requesting query from user input if none given</span>
+    <span class="k">if</span> <span class="n">query</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Type search query with ___ in place of iteration terms: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Splitting query to input iteration terms</span>
+    <span class="n">query_split</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;___&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># If only 1 iteration term is provided, runs a normal search</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">query_split</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">search_web</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="p">,</span> 
+                   <span class="n">search_engine</span> <span class="o">=</span> <span class="n">search_engine</span><span class="p">,</span> 
+                   <span class="n">view_source</span> <span class="o">=</span> <span class="n">view_source</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Search query: &#39;</span> <span class="o">+</span> <span class="n">query_split</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">iteration_terms</span><span class="p">)</span> <span class="o">+</span> <span class="n">query_split</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    
+    
+    <span class="c1"># Iterating through terms, replacing &#39;___&#39; in query with each term</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">iteration_terms</span><span class="p">:</span>
+        
+        <span class="n">query_iteration</span> <span class="o">=</span> <span class="n">query_split</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">query_split</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">search_web</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">query_iteration</span><span class="p">,</span> 
+                   <span class="n">search_engine</span> <span class="o">=</span> <span class="n">search_engine</span><span class="p">,</span> 
+                   <span class="n">view_source</span> <span class="o">=</span> <span class="n">view_source</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="search_website"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.search.search_website">[docs]</a><span class="k">def</span> <span class="nf">search_website</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">view_source</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Launches a website-specific Google search for an inputted query and URL.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    query : str</span>
+<span class="sd">        query to search. Defaults to requesting from user input.</span>
+<span class="sd">    url : str</span>
+<span class="sd">        URL for website to search within.</span>
+<span class="sd">    view_source : bool</span>
+<span class="sd">        whether to open the page source code of the search result.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting query from user input if none given</span>
+    <span class="k">if</span> <span class="n">query</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Search for: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Formatting query to focus on site</span>
+    <span class="n">site_query</span> <span class="o">=</span> <span class="s1">&#39;site:&#39;</span> <span class="o">+</span> <span class="n">url</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">site_query</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">query</span>
+    
+    <span class="c1"># Opening web search</span>
+    <span class="n">search_web</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">search_engine</span> <span class="o">=</span> <span class="s1">&#39;Google&#39;</span><span class="p">,</span> <span class="n">view_source</span> <span class="o">=</span> <span class="n">view_source</span><span class="p">)</span></div>
+    
+
+<div class="viewcode-block" id="search_social_media"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.search.search_social_media">[docs]</a><span class="k">def</span> <span class="nf">search_social_media</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">platform</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Twitter&#39;</span><span class="p">,</span> <span class="n">view_source</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Launches a Google search focused on specified social media platform for inputted query.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    query : str</span>
+<span class="sd">        query to search. Defaults to requesting from user input.</span>
+<span class="sd">    platform : str</span>
+<span class="sd">        name of the social media platform to search. Defaults to &#39;Twitter&#39;.</span>
+<span class="sd">    view_source : bool</span>
+<span class="sd">        whether to open the page source code of the search result.</span>
+<span class="sd">        </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Options for &#39;platform&#39;:</span>
+<span class="sd">        * Twitter</span>
+<span class="sd">        * Facebook</span>
+<span class="sd">        * Instagram</span>
+<span class="sd">        * TikTok</span>
+<span class="sd">        * Threads</span>
+<span class="sd">        * LinkedIn</span>
+<span class="sd">        * Reddit</span>
+<span class="sd">        * 4Chan</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting query from user input if none given</span>
+    <span class="k">if</span> <span class="n">query</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Search </span><span class="si">{</span><span class="n">platform</span><span class="si">}</span><span class="s1"> for: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Selecting platform and formatting query</span>
+    <span class="n">platform</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;twitter&#39;</span><span class="p">:</span>
+        <span class="n">site_query</span> <span class="o">=</span> <span class="s1">&#39;site:twitter.com&#39;</span>
+    
+    <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;facebook&#39;</span><span class="p">:</span>
+        <span class="n">site_query</span> <span class="o">=</span> <span class="s1">&#39;site:facebook.com&#39;</span>
+    
+    <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;instagram&#39;</span><span class="p">:</span>
+        <span class="n">site_query</span> <span class="o">=</span> <span class="s1">&#39;site:instagram.com&#39;</span>
+    
+    <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;tiktok&#39;</span><span class="p">:</span>
+        <span class="n">site_query</span> <span class="o">=</span> <span class="s1">&#39;site:tiktok.com&#39;</span>
+    
+    <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;threads&#39;</span><span class="p">:</span>
+        <span class="n">site_query</span> <span class="o">=</span> <span class="s1">&#39;site:threads.net&#39;</span>
+        
+    <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;linkedin&#39;</span><span class="p">:</span>
+        <span class="n">site_query</span> <span class="o">=</span> <span class="s1">&#39;site:linkedin.com&#39;</span>
+    
+    <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;reddit&#39;</span><span class="p">:</span>
+        <span class="n">site_query</span> <span class="o">=</span> <span class="s1">&#39;site:reddit.com&#39;</span>
+        
+    <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;4chan&#39;</span><span class="p">:</span>
+        <span class="n">site_query</span> <span class="o">=</span> <span class="s1">&#39;site:4chan.org&#39;</span>
+    
+    <span class="n">query</span> <span class="o">=</span> <span class="n">site_query</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">query</span>
+    
+    <span class="c1"># Running search</span>
+    <span class="n">search_web</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">search_engine</span> <span class="o">=</span> <span class="s1">&#39;Google&#39;</span><span class="p">,</span> <span class="n">view_source</span> <span class="o">=</span> <span class="n">view_source</span><span class="p">)</span></div>
+        
+
+<div class="viewcode-block" id="search_twitter"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.search.search_twitter">[docs]</a><span class="k">def</span> <span class="nf">search_twitter</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Launches a Google search focused Twitter for inputted query.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">search_social_media</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="p">,</span> <span class="n">platform</span> <span class="o">=</span> <span class="s1">&#39;Twitter&#39;</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="search_images"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.search.search_images">[docs]</a><span class="k">def</span> <span class="nf">search_images</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span>
+               <span class="n">search_engine</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Google Images&#39;</span>
+              <span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Launches an image search using the default web browser.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    query : str</span>
+<span class="sd">        query to search. Defaults to requesting from user input.</span>
+<span class="sd">    search_engine : str</span>
+<span class="sd">        name of image search engine to use. Defaults to &#39;Google Images&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting query from user input if none given</span>
+    <span class="k">if</span> <span class="n">query</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Search: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Reformatting query</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">quote</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    
+    <span class="c1"># Creating base for URL depending on search engine specified</span>
+    <span class="k">if</span> <span class="n">search_engine</span> <span class="o">==</span> <span class="s1">&#39;Google Images&#39;</span><span class="p">:</span>
+            <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;https://www.google.com/search?tbm=isch&amp;q=&#39;</span>
+        
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">search_engine</span> <span class="o">==</span> <span class="s1">&#39;DuckDuckGo&#39;</span><span class="p">:</span>
+            <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;https://duckduckgo.com/?q=i!&#39;</span>
+
+        <span class="k">if</span> <span class="n">search_engine</span> <span class="o">==</span> <span class="s1">&#39;Bing&#39;</span><span class="p">:</span>
+            <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;https://www.bing.com/images/search?q=&#39;</span>
+    
+    <span class="c1"># Creating search URL</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">url_base</span> <span class="o">+</span> <span class="n">query</span>
+    
+    <span class="c1"># Opening search</span>
+    <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
+        
+        
+
+<div class="viewcode-block" id="reverse_image_search"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.search.reverse_image_search">[docs]</a><span class="k">def</span> <span class="nf">reverse_image_search</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span>
+               <span class="n">search_engine</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Google Images&#39;</span>
+              <span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Launches a reverse image search for a URL using the default web browser.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : str</span>
+<span class="sd">        URL to search. Defaults to requesting from user input.</span>
+<span class="sd">    search_engine : str</span>
+<span class="sd">        name of image search engine to use. Defaults to &#39;Google Images&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Creating base for URL depending on search engine specified</span>
+    <span class="k">if</span> <span class="n">search_engine</span> <span class="o">==</span> <span class="s1">&#39;Google Images&#39;</span><span class="p">:</span>
+        <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;https://lens.google.com/uploadbyurl?url=&#39;</span>
+        
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">search_engine</span> <span class="o">==</span> <span class="s1">&#39;Google Lens&#39;</span><span class="p">:</span>
+            <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;https://lens.google.com/uploadbyurl?url=&#39;</span>
+        
+        <span class="k">if</span> <span class="n">search_engine</span> <span class="o">==</span> <span class="s1">&#39;Bing&#39;</span><span class="p">:</span>
+            <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;https://www.bing.com/images/search?view=detailv2&amp;iss=sbi&amp;form=SBIIRP&amp;sbisrc=UrlPaste&amp;q=imgurl:&#39;</span>
+        
+        <span class="k">if</span> <span class="n">search_engine</span> <span class="o">==</span> <span class="s1">&#39;TinEye&#39;</span><span class="p">:</span>
+            <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;https://tineye.com/search?url=&#39;</span>
+    
+    <span class="c1"># Creating URL for search</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">url_base</span> <span class="o">+</span> <span class="n">url</span>
+    
+    <span class="c1"># Opening search in browser</span>
+    <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

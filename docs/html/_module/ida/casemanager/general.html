@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.casemanager.general &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">ida</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ida.casemanager.general</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ida.casemanager.general</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">..core.globaltools</span> <span class="kn">import</span> <span class="n">get_var_name_str</span>
+<span class="kn">from</span> <span class="nn">..internet.crawlers</span> <span class="kn">import</span> <span class="n">crawler</span>
+<span class="kn">from</span> <span class="nn">.defaults_manager</span> <span class="kn">import</span> <span class="n">DEFAULT_SET</span><span class="p">,</span> <span class="n">DEFAULT_CASE_NAME</span><span class="p">,</span> <span class="n">set_default_case</span><span class="p">,</span> <span class="n">get_default_case_name</span><span class="p">,</span> <span class="n">get_default_case</span><span class="p">,</span> <span class="n">is_default_case</span><span class="p">,</span> <span class="n">check_default_case</span><span class="p">,</span> <span class="n">remove_default_case</span><span class="p">,</span> <span class="n">update_default_case</span>
+<span class="kn">from</span> <span class="nn">.backups_manager</span> <span class="kn">import</span> <span class="n">Backups</span><span class="p">,</span> <span class="n">get_backups</span><span class="p">,</span> <span class="n">BACKUPS</span>
+<span class="kn">from</span> <span class="nn">.case</span> <span class="kn">import</span> <span class="n">Case</span>
+<span class="kn">from</span> <span class="nn">.items</span> <span class="kn">import</span> <span class="n">CaseItem</span><span class="p">,</span> <span class="n">CaseItemSet</span><span class="p">,</span> <span class="n">url_to_item_id</span>
+<span class="kn">from</span> <span class="nn">.projects</span> <span class="kn">import</span> <span class="n">Project</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<div class="viewcode-block" id="new_blank_case"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.new_blank_case">[docs]</a><span class="k">def</span> <span class="nf">new_blank_case</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">project</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">make_default</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a new, blank Case object.</span>
+<span class="sd">        </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        name for Case. This is intended to be the same string as the Case&#39;s variable name.</span>
+<span class="sd">    project : str</span>
+<span class="sd">        name of Project object Case will be an attribute of. Defaults to None.</span>
+<span class="sd">    make_default : bool</span>
+<span class="sd">        whether to set the Case as the default case in the environment. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Case name: &#39;</span><span class="p">)</span>
+    
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Case</span><span class="p">(</span><span class="n">case_name</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span> <span class="n">project</span> <span class="o">=</span> <span class="n">project</span><span class="p">,</span> <span class="n">make_default</span> <span class="o">=</span> <span class="n">make_default</span><span class="p">,</span> <span class="n">parse</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">keywords</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">coincidences</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">indexes</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">networks</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">analytics</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+    
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">create_new_backup</span><span class="p">()</span>
+    
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">backup</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">name</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="crawl_res_to_case_obj"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.crawl_res_to_case_obj">[docs]</a><span class="k">def</span> <span class="nf">crawl_res_to_case_obj</span><span class="p">(</span><span class="n">crawl_df</span><span class="p">,</span> <span class="n">case_name</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a Case object from the results of a web crawl.</span>
+<span class="sd">        </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    crawl_df : pandas.DataFrame</span>
+<span class="sd">        web crawl result.</span>
+<span class="sd">    case_name : str</span>
+<span class="sd">        name for Case. This is intended to be the same string as the Case&#39;s variable name.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">case</span> <span class="o">=</span> <span class="n">Case</span><span class="p">(</span><span class="n">case_name</span> <span class="o">=</span> <span class="n">case_name</span><span class="p">)</span>
+    <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+    <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+    <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">other</span> <span class="o">=</span> <span class="n">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+    
+    
+    <span class="n">df</span> <span class="o">=</span> <span class="n">crawl_df</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+    
+    <span class="n">urls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">:</span>
+        
+        <span class="n">item_id</span> <span class="o">=</span> <span class="n">url_to_item_id</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        
+        <span class="n">items_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+                            <span class="nb">list</span><span class="p">(</span><span class="n">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> 
+                            <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> 
+                            <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">item_id</span> <span class="ow">in</span> <span class="n">items_set</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">items_set</span> <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="n">item_id</span><span class="p">)])</span>
+            <span class="n">item_id</span> <span class="o">=</span> <span class="n">item_id</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">]</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;data_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;unique_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;fingerprint&#39;</span><span class="p">]</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">]</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;pagetype&#39;</span><span class="p">]</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;format&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;html&#39;</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;source&#39;</span><span class="p">]</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;domain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;hostname&#39;</span><span class="p">]</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;url&#39;</span><span class="p">]</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;created_by&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;author&#39;</span><span class="p">]</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;last_changed_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">]</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;language&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;language&#39;</span><span class="p">]</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;html&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;html&#39;</span><span class="p">]</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;raw_text&#39;</span><span class="p">]</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;image&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;image&#39;</span><span class="p">]</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;links&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;links&#39;</span><span class="p">]</span>
+        <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">other</span> <span class="o">=</span> <span class="n">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    
+    <span class="k">case</span><span class="o">.</span><span class="n">update_items_from_dataframes</span><span class="p">()</span>
+    <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span>
+    <span class="k">case</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span>
+    <span class="k">case</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">case</span></div>
+    
+    
+<div class="viewcode-block" id="case_from_web_crawl"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.case_from_web_crawl">[docs]</a><span class="k">def</span> <span class="nf">case_from_web_crawl</span><span class="p">(</span><span class="n">case_name</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span>
+                        <span class="n">make_global_var</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="n">seed_urls</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span>
+                        <span class="n">visit_limit</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> 
+                        <span class="n">excluded_url_terms</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span><span class="p">,</span>
+                        <span class="n">required_keywords</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                        <span class="n">excluded_keywords</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                        <span class="n">case_sensitive</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                        <span class="n">ignore_urls</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                        <span class="n">ignore_domains</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span><span class="p">,</span>
+                        <span class="n">be_polite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="n">full</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Crawls internet from a single URL or list of URLs and returns a Case object.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    case_name : str</span>
+<span class="sd">        name for Case. This is intended to be the same string as the Case&#39;s variable name.</span>
+<span class="sd">    seed_urls : str or list</span>
+<span class="sd">        one or more URLs from which to crawl.</span>
+<span class="sd">    visit_limit : int</span>
+<span class="sd">        how many URLs the crawler should visit before it stops.</span>
+<span class="sd">    excluded_url_terms : list</span>
+<span class="sd">        list of strings; link will be ignored if it contains any string in list.</span>
+<span class="sd">    required_keywords : list</span>
+<span class="sd">        list of keywords which sites must contain to be crawled.</span>
+<span class="sd">    excluded_keywords : list</span>
+<span class="sd">        list of keywords which sites must *not* contain to be crawled.</span>
+<span class="sd">    case_sensitive : bool</span>
+<span class="sd">        whether or not to ignore string characters&#39; case.</span>
+<span class="sd">    ignore_urls : list</span>
+<span class="sd">        list of URLs to ignore.</span>
+<span class="sd">    ignore_domains : list</span>
+<span class="sd">        list of domains to ignore.</span>
+<span class="sd">    be_polite : bool</span>
+<span class="sd">        whether respect websites&#39; permissions for crawlers.</span>
+<span class="sd">    full : bool</span>
+<span class="sd">        whether to run a full scrape on each site. This takes longer.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : object</span>
+<span class="sd">        an object containing the results of a crawl.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">case_name</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">case_name</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Case name: &#39;</span><span class="p">)</span>
+    
+    <span class="n">crawl_df</span> <span class="o">=</span> <span class="n">crawler</span><span class="p">(</span>
+                    <span class="n">seed_urls</span> <span class="o">=</span> <span class="n">seed_urls</span><span class="p">,</span>
+                    <span class="n">visit_limit</span> <span class="o">=</span> <span class="n">visit_limit</span><span class="p">,</span> 
+                    <span class="n">excluded_url_terms</span> <span class="o">=</span> <span class="n">excluded_url_terms</span><span class="p">,</span>
+                    <span class="n">required_keywords</span> <span class="o">=</span> <span class="n">required_keywords</span><span class="p">,</span> 
+                    <span class="n">excluded_keywords</span> <span class="o">=</span> <span class="n">excluded_keywords</span><span class="p">,</span> 
+                    <span class="n">case_sensitive</span> <span class="o">=</span> <span class="n">case_sensitive</span><span class="p">,</span>
+                    <span class="n">ignore_urls</span> <span class="o">=</span> <span class="n">ignore_urls</span><span class="p">,</span> 
+                    <span class="n">ignore_domains</span> <span class="o">=</span> <span class="n">ignore_domains</span><span class="p">,</span>
+                    <span class="n">be_polite</span> <span class="o">=</span> <span class="n">be_polite</span><span class="p">,</span>
+                    <span class="n">full</span> <span class="o">=</span> <span class="n">full</span><span class="p">,</span>
+                    <span class="n">output_as</span> <span class="o">=</span> <span class="s1">&#39;dataframe&#39;</span>
+                    <span class="p">)</span>
+    
+    <span class="n">case</span> <span class="o">=</span> <span class="n">crawl_res_to_case_obj</span><span class="p">(</span><span class="n">crawl_df</span> <span class="o">=</span> <span class="n">crawl_df</span><span class="p">,</span> <span class="n">case_name</span> <span class="o">=</span> <span class="n">case_name</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">make_global_var</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">case</span>
+    
+    <span class="k">return</span> <span class="n">case</span></div>
+
+
+    
+<div class="viewcode-block" id="crawl_res_to_case_items"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.crawl_res_to_case_items">[docs]</a><span class="k">def</span> <span class="nf">crawl_res_to_case_items</span><span class="p">(</span><span class="n">crawl_df</span><span class="p">,</span> <span class="n">case</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a CaseItemSet object from the results of a web crawl and adds to a Case.</span>
+<span class="sd">        </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    crawl_df : pandas.DataFrame</span>
+<span class="sd">        web crawl result.</span>
+<span class="sd">    case  : Case</span>
+<span class="sd">        Case to add results to.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">case_obj</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">case</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">crawl_df</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+    
+    <span class="n">urls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">:</span>
+        
+        <span class="n">item_id</span> <span class="o">=</span> <span class="n">url_to_item_id</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        
+        <span class="n">items_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+                            <span class="nb">list</span><span class="p">(</span><span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> 
+                            <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> 
+                            <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">item_id</span> <span class="ow">in</span> <span class="n">items_set</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">items_set</span> <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="n">item_id</span><span class="p">)</span>
+                <span class="p">]</span>
+                <span class="p">)</span>
+            <span class="n">item_id</span> <span class="o">=</span> <span class="n">item_id</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="n">item_id</span><span class="p">)</span>
+        
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">]</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;data_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;unique_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;fingerprint&#39;</span><span class="p">]</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">]</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;pagetype&#39;</span><span class="p">]</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;format&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;html&#39;</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;source&#39;</span><span class="p">]</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;domain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;hostname&#39;</span><span class="p">]</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;url&#39;</span><span class="p">]</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;created_by&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;author&#39;</span><span class="p">]</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;last_changed_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">]</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;language&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;language&#39;</span><span class="p">]</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;html&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;html&#39;</span><span class="p">]</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;raw_text&#39;</span><span class="p">]</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;image&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;image&#39;</span><span class="p">]</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;links&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;links&#39;</span><span class="p">]</span>
+        <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">other</span> <span class="o">=</span> <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    
+    <span class="n">case_obj</span><span class="o">.</span><span class="n">update_items_from_dataframes</span><span class="p">()</span>
+    <span class="n">case_obj</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span>
+    <span class="n">case_obj</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span>
+    <span class="n">case_obj</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">case_obj</span></div>
+
+
+<div class="viewcode-block" id="items_from_web_crawl"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.items_from_web_crawl">[docs]</a><span class="k">def</span> <span class="nf">items_from_web_crawl</span><span class="p">(</span><span class="n">case</span> <span class="o">=</span> <span class="s1">&#39;default_case&#39;</span><span class="p">,</span>
+                        <span class="n">update_global_var</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="n">seed_urls</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span>
+                        <span class="n">visit_limit</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> 
+                        <span class="n">excluded_url_terms</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span><span class="p">,</span>
+                        <span class="n">required_keywords</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                        <span class="n">excluded_keywords</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                        <span class="n">case_sensitive</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                        <span class="n">ignore_urls</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                        <span class="n">ignore_domains</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span><span class="p">,</span>
+                        <span class="n">be_polite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="n">full</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="n">output_as</span> <span class="o">=</span> <span class="s1">&#39;dataframe&#39;</span>
+                        <span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Crawls internet from a single URL or list of URLs and adds to an existing Case object.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    case  : str </span>
+<span class="sd">        name of Case to add results to.</span>
+<span class="sd">    seed_urls : str or list </span>
+<span class="sd">        one or more URLs from which to crawl.</span>
+<span class="sd">    visit_limit : int </span>
+<span class="sd">        how many URLs the crawler should visit before it stops.</span>
+<span class="sd">    excluded_url_terms : list </span>
+<span class="sd">        list of strings. The link will be ignored if it contains any string in list.</span>
+<span class="sd">    required_keywords : list </span>
+<span class="sd">        list of keywords which sites must contain to be crawled.</span>
+<span class="sd">    excluded_keywords : list </span>
+<span class="sd">        list of keywords which sites must *not* contain to be crawled.</span>
+<span class="sd">    case_sensitive : bool </span>
+<span class="sd">        whether or not to ignore string characters&#39; case.</span>
+<span class="sd">    ignore_urls : list </span>
+<span class="sd">        list of URLs to ignore.</span>
+<span class="sd">    ignore_domains : list </span>
+<span class="sd">        list of domains to ignore.</span>
+<span class="sd">    be_polite : bool </span>
+<span class="sd">        whether respect websites&#39; permissions for crawlers.</span>
+<span class="sd">    full : bool </span>
+<span class="sd">        whether to run a full scrape on each site. This takes longer.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : object </span>
+<span class="sd">        an object containing the results of a crawl.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">case</span> <span class="o">==</span> <span class="s1">&#39;default_case&#39;</span><span class="p">:</span>
+        <span class="n">case</span> <span class="o">=</span> <span class="n">get_default_case</span><span class="p">()</span>
+    
+    <span class="n">crawl_df</span> <span class="o">=</span> <span class="n">crawler</span><span class="p">(</span>
+                    <span class="n">seed_urls</span> <span class="o">=</span> <span class="n">seed_urls</span><span class="p">,</span>
+                    <span class="n">visit_limit</span> <span class="o">=</span> <span class="n">visit_limit</span><span class="p">,</span> 
+                    <span class="n">excluded_url_terms</span> <span class="o">=</span> <span class="n">excluded_url_terms</span><span class="p">,</span>
+                    <span class="n">required_keywords</span> <span class="o">=</span> <span class="n">required_keywords</span><span class="p">,</span> 
+                    <span class="n">excluded_keywords</span> <span class="o">=</span> <span class="n">excluded_keywords</span><span class="p">,</span> 
+                    <span class="n">case_sensitive</span> <span class="o">=</span> <span class="n">case_sensitive</span><span class="p">,</span>
+                    <span class="n">ignore_urls</span> <span class="o">=</span> <span class="n">ignore_urls</span><span class="p">,</span> 
+                    <span class="n">ignore_domains</span> <span class="o">=</span> <span class="n">ignore_domains</span><span class="p">,</span>
+                    <span class="n">be_polite</span> <span class="o">=</span> <span class="n">be_polite</span><span class="p">,</span>
+                    <span class="n">full</span> <span class="o">=</span> <span class="n">full</span><span class="p">,</span>
+                    <span class="n">output_as</span> <span class="o">=</span> <span class="n">output_as</span>
+                    <span class="p">)</span>
+    
+    <span class="n">udpated_case</span> <span class="o">=</span> <span class="n">crawl_res_to_case_items</span><span class="p">(</span><span class="n">crawl_df</span> <span class="o">=</span> <span class="n">crawl_df</span><span class="p">,</span> <span class="n">case</span> <span class="o">=</span> <span class="n">case</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">update_global_var</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">case_name</span> <span class="o">=</span> <span class="n">get_var_name_str</span><span class="p">(</span><span class="n">case</span><span class="p">)</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">udpated_case</span>
+    
+    <span class="k">return</span> <span class="n">udpated_case</span></div>
+
+<span class="c1">## Functions for importing data and files</span>
+
+<div class="viewcode-block" id="clean_metadata_import"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.clean_metadata_import">[docs]</a><span class="k">def</span> <span class="nf">clean_metadata_import</span><span class="p">(</span><span class="n">metadata_import</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cleans imported metadata dataframe.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">metadata_import</span><span class="p">)</span> <span class="o">!=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Metadata import must be of type &quot;DataFrame&quot;&#39;</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">metadata_import</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">metadata_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">empty_to_none</span><span class="p">)</span>
+        <span class="n">metadata_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+        <span class="n">metadata_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">metadata_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">metadata_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">series_none_list_to_empty_lists</span><span class="p">)</span>
+    
+    <span class="n">metadata_import</span><span class="p">[</span><span class="s1">&#39;created_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_import</span><span class="p">[</span><span class="s1">&#39;created_at&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">series_to_datetimes</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">metadata_import</span><span class="o">.</span><span class="n">created_at</span><span class="o">.</span><span class="n">notnull</span><span class="p">(),</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">metadata_import</span><span class="p">[</span><span class="s1">&#39;last_changed_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_import</span><span class="p">[</span><span class="s1">&#39;last_changed_at&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">series_to_datetimes</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">metadata_import</span><span class="o">.</span><span class="n">last_changed_at</span><span class="o">.</span><span class="n">notnull</span><span class="p">(),</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">metadata_import</span><span class="p">[</span><span class="s1">&#39;uploaded_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_import</span><span class="p">[</span><span class="s1">&#39;uploaded_at&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">series_to_datetimes</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">metadata_import</span><span class="o">.</span><span class="n">uploaded_at</span><span class="o">.</span><span class="n">notnull</span><span class="p">(),</span> <span class="kc">None</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">metadata_import</span></div>
+    
+
+<div class="viewcode-block" id="clean_info_import"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.clean_info_import">[docs]</a><span class="k">def</span> <span class="nf">clean_info_import</span><span class="p">(</span><span class="n">info_import</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cleans imported information dataframe.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">info_import</span><span class="p">)</span> <span class="o">!=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Information import must be of type &quot;pd.DataFrame&quot;&#39;</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">info_import</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        
+        <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">empty_to_none</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;&lt;M8[ns]&#39;</span><span class="p">:</span>
+            <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">regex</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;;&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]):</span>
+                <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">text_splitter</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">text_splitter</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">))</span>
+            
+            <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">list_to_datetimes</span><span class="p">)</span>
+<span class="c1">#             info_import[column] = info_import[column].where(info_import.date_times.notnull(), None)</span>
+            <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">nat_list_to_nones_list</span><span class="p">)</span>
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+            <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">regex</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">regex</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">regex</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">regex</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">regex</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">regex</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">regex</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="s2">&quot;&#39;,&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]):</span>
+                <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">regex</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s1">&#39;&quot;,&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]):</span>
+                <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">regex</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="s1">&#39;;&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]):</span>
+                <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">text_splitter</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">text_splitter</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">))</span>
+                                                            
+        <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[None]&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[none]&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;NaT&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">series_none_list_to_empty_lists</span><span class="p">)</span>
+    
+    <span class="n">info_import</span><span class="p">[</span><span class="s1">&#39;date_times&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="s1">&#39;date_times&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">series_to_datetimes</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">info_import</span><span class="o">.</span><span class="n">date_times</span><span class="o">.</span><span class="n">notnull</span><span class="p">(),</span> <span class="kc">None</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">info_import</span></div>
+
+<div class="viewcode-block" id="clean_other_import"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.clean_other_import">[docs]</a><span class="k">def</span> <span class="nf">clean_other_import</span><span class="p">(</span><span class="n">other_import</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cleans imported &#39;other&#39; dataframe (links, references, and contents).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other_import</span><span class="p">)</span> <span class="o">!=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Other import must be of type &quot;pd.DataFrame&quot;&#39;</span><span class="p">)</span>
+    
+    <span class="n">other_import</span> <span class="o">=</span> <span class="n">other_import</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+    
+    <span class="n">list_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;links&#39;</span><span class="p">,</span> <span class="s1">&#39;references&#39;</span><span class="p">,</span> <span class="s1">&#39;contents&#39;</span><span class="p">]</span>
+    
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">other_import</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        
+        <span class="n">other_import</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">other_import</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">list_cols</span><span class="p">:</span>
+            <span class="n">other_import</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">other_import</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+            <span class="n">other_import</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">correct_series_of_lists</span><span class="p">(</span><span class="n">other_import</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+    
+    <span class="n">other_import</span> <span class="o">=</span> <span class="n">other_import</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">other_import</span></div>
+    
+    
+<div class="viewcode-block" id="item_from_data_import"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.item_from_data_import">[docs]</a><span class="k">def</span> <span class="nf">item_from_data_import</span><span class="p">(</span><span class="n">data_import</span><span class="p">,</span> <span class="n">item_id</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes imported data dataframe and returns an item.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">data_import</span><span class="p">)</span> <span class="o">!=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Data import must be of type &quot;pd.DataFrame&quot;&#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">item_id</span> <span class="ow">in</span> <span class="n">data_import</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            
+            <span class="n">input_data</span> <span class="o">=</span> <span class="n">data_import</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">]</span>
+            <span class="n">data_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Datatype&#39;</span><span class="p">,</span> <span class="s1">&#39;Format&#39;</span><span class="p">,</span> <span class="s1">&#39;Stored as&#39;</span><span class="p">,</span> <span class="s1">&#39;Size (bytes)&#39;</span><span class="p">,</span> <span class="s1">&#39;Raw data&#39;</span><span class="p">,</span> <span class="s1">&#39;Parsed data&#39;</span><span class="p">])</span>
+            
+            <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">input_data</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">input_data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                    
+                    <span class="n">data_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;Raw data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                    <span class="n">data_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;Datatype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">col</span>
+                    <span class="n">data_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;Stored as&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">input_data</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+                    <span class="n">size</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">input_data</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+                    <span class="n">data_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;Size (bytes)&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">size</span>
+                    
+                    <span class="k">if</span> <span class="p">(</span><span class="n">data_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;Datatype&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;text&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;word&#39;</span> <span class="ow">in</span> <span class="n">data_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;Datatype&#39;</span><span class="p">]):</span>
+                        <span class="n">data_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;Format&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;txt&#39;</span>
+                    
+                    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;html&#39;</span> <span class="ow">in</span> <span class="n">data_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;Datatype&#39;</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">data_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;Datatype&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;web code&#39;</span><span class="p">):</span>
+                        <span class="n">data_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;Format&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;html&#39;</span>
+                    
+                <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>  
+            
+            <span class="n">data_df</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">data_df</span></div>
+
+<div class="viewcode-block" id="item_from_metadata_import"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.item_from_metadata_import">[docs]</a><span class="k">def</span> <span class="nf">item_from_metadata_import</span><span class="p">(</span><span class="n">metadata_import</span><span class="p">,</span> <span class="n">item_id</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes imported metadata dataframe and returns an item.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">metadata_import</span><span class="p">)</span> <span class="o">!=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Metadata import must be of type &quot;pd.DataFrame&quot;&#39;</span><span class="p">)</span>
+    
+    <span class="n">metadata_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Metadata&#39;</span><span class="p">,</span> <span class="s1">&#39;Category&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">item_id</span> <span class="ow">in</span> <span class="n">metadata_import</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+        
+            <span class="n">input_metadata</span> <span class="o">=</span> <span class="n">metadata_import</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">input_metadata</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+                <span class="n">item</span> <span class="o">=</span> <span class="n">input_metadata</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                <span class="n">new_row</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Metadata&#39;</span><span class="p">:</span> <span class="n">item</span><span class="p">,</span> <span class="s1">&#39;Category&#39;</span><span class="p">:</span> <span class="n">index</span><span class="p">}</span>
+                <span class="n">metadata_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">metadata_df</span><span class="p">)]</span> <span class="o">=</span> <span class="n">new_row</span>
+
+
+            <span class="n">metadata_df</span><span class="p">[</span><span class="s1">&#39;Metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_df</span><span class="p">[</span><span class="s1">&#39;Metadata&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">metadata_df</span><span class="p">[</span><span class="s1">&#39;Category&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_df</span><span class="p">[</span><span class="s1">&#39;Category&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+            
+            <span class="n">metadata_import</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">item_id</span><span class="p">],</span><span class="n">columns</span><span class="o">=</span><span class="n">metadata_import</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+        
+    <span class="k">return</span> <span class="n">metadata_df</span></div>
+
+<div class="viewcode-block" id="item_from_info_import"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.item_from_info_import">[docs]</a><span class="k">def</span> <span class="nf">item_from_info_import</span><span class="p">(</span><span class="n">info_import</span><span class="p">,</span> <span class="n">item_id</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes imported information dataframe and returns an item.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">info_import</span><span class="p">)</span> <span class="o">!=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Information import must be of type &quot;pd.DataFrame&quot;&#39;</span><span class="p">)</span>
+    
+    <span class="n">info_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Label&#39;</span><span class="p">,</span> <span class="s1">&#39;Category&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">item_id</span> <span class="ow">in</span> <span class="n">info_import</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+        
+            <span class="n">input_info</span> <span class="o">=</span> <span class="n">info_import</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">input_info</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">input_info</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">input_info</span><span class="p">[</span><span class="n">index</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">item</span> <span class="o">!=</span> <span class="s1">&#39;none&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">item</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+                            <span class="n">new_row</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Label&#39;</span><span class="p">:</span> <span class="n">item</span><span class="p">,</span> <span class="s1">&#39;Category&#39;</span><span class="p">:</span> <span class="n">index</span><span class="p">}</span>
+                            <span class="n">info_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">info_df</span><span class="p">)]</span> <span class="o">=</span> <span class="n">new_row</span>
+
+
+            <span class="n">info_df</span><span class="p">[</span><span class="s1">&#39;Label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_df</span><span class="p">[</span><span class="s1">&#39;Label&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">info_df</span><span class="p">[</span><span class="s1">&#39;Category&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_df</span><span class="p">[</span><span class="s1">&#39;Category&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+            
+            <span class="n">info_import</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">item_id</span><span class="p">],</span><span class="n">columns</span><span class="o">=</span><span class="n">info_import</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+        
+    <span class="k">return</span> <span class="n">info_df</span></div>
+
+<div class="viewcode-block" id="item_from_other_import"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.item_from_other_import">[docs]</a><span class="k">def</span> <span class="nf">item_from_other_import</span><span class="p">(</span><span class="n">other_import</span><span class="p">,</span> <span class="n">case_name</span><span class="p">,</span> <span class="n">item_id</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes imported &#39;other&#39; dataframe (links, references, and contents) and returns an item.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other_import</span><span class="p">)</span> <span class="o">!=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;&quot;Other&quot; import must be of type &quot;pd.DataFrame&quot;&#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">item_id</span> <span class="ow">in</span> <span class="n">other_import</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            
+            <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">get_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">)</span><span class="o">.</span><span class="n">links</span> <span class="o">=</span> <span class="n">other_import</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;links&#39;</span><span class="p">]</span>
+            <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">get_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">)</span><span class="o">.</span><span class="n">references</span> <span class="o">=</span> <span class="n">other_import</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;references&#39;</span><span class="p">]</span>
+            <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">get_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">)</span><span class="o">.</span><span class="n">contains</span> <span class="o">=</span> <span class="n">other_import</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;contents&#39;</span><span class="p">]</span></div>
+
+            
+<div class="viewcode-block" id="parse_data_import"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.parse_data_import">[docs]</a><span class="k">def</span> <span class="nf">parse_data_import</span><span class="p">(</span><span class="n">case</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses raw data from imported data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">case</span><span class="o">.</span><span class="n">parse_rawdata</span><span class="p">()</span>
+
+    <span class="k">case</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">keywords</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;frequent_words&#39;</span><span class="p">:</span> <span class="n">all_evidence_entries_words_frequencies_with_evlists</span><span class="p">(</span><span class="n">case</span> <span class="o">=</span> <span class="n">case</span><span class="p">)}</span>                                                    
+    
+    <span class="k">for</span> <span class="n">item_id</span> <span class="ow">in</span> <span class="n">case</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+
+        <span class="k">case</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">get_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">)</span><span class="o">.</span><span class="n">keywords</span> <span class="o">=</span> <span class="p">{</span>
+                                                <span class="s1">&#39;frequent_words&#39;</span><span class="p">:</span> <span class="n">evidence_entry_most_freq_words</span><span class="p">(</span>
+                                                                                                <span class="n">item_id</span> <span class="o">=</span> <span class="n">item_id</span><span class="p">,</span> 
+                                                                                                <span class="n">case</span> <span class="o">=</span> <span class="n">case</span><span class="p">,</span>
+                                                                                                <span class="n">dataframe</span> <span class="o">=</span> <span class="kc">None</span>
+                                                                                                <span class="p">)</span>
+                                                  <span class="p">}</span>
+        
+        <span class="k">case</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">get_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">)</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span>
+    
+    <span class="k">case</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="caseobj_from_df_imports"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.caseobj_from_df_imports">[docs]</a><span class="k">def</span> <span class="nf">caseobj_from_df_imports</span><span class="p">(</span><span class="n">case_name</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span> <span class="n">metadata_import</span><span class="p">,</span> <span class="n">info_import</span><span class="p">,</span> <span class="n">data_import</span><span class="p">,</span> <span class="n">other_import</span><span class="p">,</span> <span class="n">make_default</span><span class="p">,</span> <span class="n">infer_internet_metadata</span><span class="p">,</span> <span class="n">infer_geolocation_metadata</span><span class="p">,</span> <span class="n">lookup_whois</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a Case from imported dataframes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">new_blank_case</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">case_name</span><span class="p">,</span> <span class="n">project</span> <span class="o">=</span> <span class="n">project</span><span class="p">,</span> <span class="n">make_default</span> <span class="o">=</span> <span class="n">make_default</span><span class="p">)</span>
+    
+    <span class="n">item_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">metadata_import</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">info_import</span><span class="o">.</span><span class="n">index</span><span class="p">))</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">data_import</span><span class="o">.</span><span class="n">index</span><span class="p">))</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">other_import</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">item_set</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+    <span class="k">except</span><span class="p">:</span>
+        <span class="kc">None</span>
+    
+    <span class="k">for</span> <span class="n">item_id</span> <span class="ow">in</span> <span class="n">item_set</span><span class="p">:</span>
+        
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">add_blank_item</span><span class="p">(</span><span class="n">item_id</span> <span class="o">=</span> <span class="n">item_id</span><span class="p">)</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">get_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">)</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">item_from_metadata_import</span><span class="p">(</span><span class="n">metadata_import</span><span class="p">,</span> <span class="n">item_id</span><span class="p">)</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">get_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">item_from_data_import</span><span class="p">(</span><span class="n">data_import</span><span class="p">,</span> <span class="n">item_id</span><span class="p">)</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">get_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">)</span><span class="o">.</span><span class="n">information</span> <span class="o">=</span> <span class="n">item_from_info_import</span><span class="p">(</span><span class="n">info_import</span><span class="p">,</span> <span class="n">item_id</span><span class="p">)</span>
+        <span class="n">item_from_other_import</span><span class="p">(</span><span class="n">other_import</span><span class="p">,</span> <span class="n">case_name</span><span class="p">,</span> <span class="n">item_id</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">lookup_whois</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">get_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">)</span><span class="o">.</span><span class="n">lookup_whois</span><span class="p">(</span><span class="n">append_to_item</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">get_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">)</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span>
+    
+    <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">info_import</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">empty_to_none</span><span class="p">)</span>
+        <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">metadata_import</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">information</span> <span class="o">=</span> <span class="n">info_import</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data_import</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">other</span> <span class="o">=</span> <span class="n">other_import</span>
+    
+    
+    <span class="k">if</span> <span class="n">infer_internet_metadata</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">infer_internet_metadata</span><span class="p">()</span>
+    
+        <span class="n">metadata_import</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span>
+    
+    <span class="k">if</span> <span class="n">infer_geolocation_metadata</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">infer_geolocation_metadata</span><span class="p">()</span>
+    
+        <span class="n">metadata_import</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">metadata</span>
+    
+<span class="c1">#     gen_coincidence_dfs(case = globals()[case_name])</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">dataframes</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">make_default</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">make_default</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="import_case_excel"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.import_case_excel">[docs]</a><span class="k">def</span> <span class="nf">import_case_excel</span><span class="p">(</span><span class="n">case_name</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">file_address</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">project</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">infer_internet_metadata</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">lookup_whois</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">infer_geolocation_metadata</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">parse</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">keywords</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">coincidences</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">networks</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">analytics</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">make_default</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Imports a Case from a formatted Excel (.xlsx) file.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    case_name : str </span>
+<span class="sd">        name for Case. This is intended to be the same string as the Case&#39;s variable name.</span>
+<span class="sd">    file_address : str </span>
+<span class="sd">        directory address of file to use. defaults to requesting for user input.</span>
+<span class="sd">    project : str </span>
+<span class="sd">        name of Project object Case will be an attribute of. Defaults to None.</span>
+<span class="sd">    infer_internet_metadata : bool </span>
+<span class="sd">        whether to infer additional internet metadata from internet metadata provided.</span>
+<span class="sd">    lookup_whois : bool </span>
+<span class="sd">        whether to run WhoIs lookups on items.</span>
+<span class="sd">    infer_geolocation_metadata : bool </span>
+<span class="sd">        whether to infer additional geolocation metadata from geolocation metadata provided.</span>
+<span class="sd">    make_default : bool </span>
+<span class="sd">        whether to make the Case object the default csae in the environment.</span>
+<span class="sd">    parse : bool </span>
+<span class="sd">        whether to parse the case&#39;s raw data.</span>
+<span class="sd">    keywords : bool </span>
+<span class="sd">        whether to generate keywords from parsed data.</span>
+<span class="sd">    indexes : bool </span>
+<span class="sd">        whether to index Case items, entities, and events by their contents.</span>
+<span class="sd">    coincidences : bool </span>
+<span class="sd">        whether to analyse patterns of coinciding data.</span>
+<span class="sd">    networks : bool </span>
+<span class="sd">        whether to generate core networks from Case items.</span>
+<span class="sd">    analytics : bool </span>
+<span class="sd">        whether to generate Case analytics.</span>
+<span class="sd">    make_default : bool </span>
+<span class="sd">        whether to make the Case object the default csae in the environment.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Case</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">case_name</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">case_name</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Case name: &#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">file_address</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">file_address</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Case file(s) address: &#39;</span><span class="p">)</span>
+    
+    <span class="n">metadata_import</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">file_address</span><span class="p">,</span> <span class="n">sheet_name</span> <span class="o">=</span> <span class="s1">&#39;Item metadata&#39;</span><span class="p">,</span> <span class="n">header</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index_col</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">object</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">({</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">:</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">})</span>
+    <span class="n">info_import</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">file_address</span><span class="p">,</span> <span class="n">sheet_name</span> <span class="o">=</span> <span class="s1">&#39;Item information&#39;</span><span class="p">,</span> <span class="n">header</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index_col</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">object</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">({</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">:</span> <span class="s1">&#39;None&#39;</span><span class="p">})</span>
+    <span class="n">data_import</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">file_address</span><span class="p">,</span> <span class="n">sheet_name</span> <span class="o">=</span> <span class="s1">&#39;Item data&#39;</span><span class="p">,</span> <span class="n">header</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index_col</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">object</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">({</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">:</span> <span class="s1">&#39;None&#39;</span><span class="p">})</span>
+    <span class="n">other_import</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">file_address</span><span class="p">,</span> <span class="n">sheet_name</span> <span class="o">=</span> <span class="s1">&#39;Item other&#39;</span><span class="p">,</span> <span class="n">header</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index_col</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">object</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">({</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">:</span> <span class="s1">&#39;None&#39;</span><span class="p">})</span>
+    
+    <span class="n">info_import</span> <span class="o">=</span> <span class="n">clean_info_import</span><span class="p">(</span><span class="n">info_import</span><span class="p">)</span>
+    <span class="n">metadata_import</span> <span class="o">=</span> <span class="n">clean_metadata_import</span><span class="p">(</span><span class="n">metadata_import</span><span class="p">)</span>
+    <span class="n">other_import</span> <span class="o">=</span> <span class="n">clean_other_import</span><span class="p">(</span><span class="n">other_import</span><span class="p">)</span>
+    
+    <span class="n">caseobj_from_df_imports</span><span class="p">(</span>
+                    <span class="n">case_name</span> <span class="o">=</span> <span class="n">case_name</span><span class="p">,</span> 
+                    <span class="n">project</span> <span class="o">=</span> <span class="n">project</span><span class="p">,</span>
+                     <span class="n">metadata_import</span> <span class="o">=</span> <span class="n">metadata_import</span><span class="p">,</span> 
+                     <span class="n">info_import</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">,</span> 
+                     <span class="n">data_import</span> <span class="o">=</span> <span class="n">data_import</span><span class="p">,</span> 
+                     <span class="n">other_import</span> <span class="o">=</span> <span class="n">other_import</span><span class="p">,</span>
+                     <span class="n">make_default</span> <span class="o">=</span> <span class="n">make_default</span><span class="p">,</span>
+                    <span class="n">infer_internet_metadata</span> <span class="o">=</span> <span class="n">infer_internet_metadata</span><span class="p">,</span>
+                    <span class="n">infer_geolocation_metadata</span> <span class="o">=</span> <span class="n">infer_geolocation_metadata</span><span class="p">,</span>
+                    <span class="n">lookup_whois</span> <span class="o">=</span> <span class="n">lookup_whois</span>
+                    <span class="p">)</span>
+    
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">file_location</span> <span class="o">=</span> <span class="n">file_address</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">file_type</span> <span class="o">=</span> <span class="s1">&#39;.xlsx&#39;</span>
+    
+    <span class="k">if</span> <span class="n">parse</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">parse_rawdata</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">keywords</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">generate_keywords</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">generate_indexes</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">coincidences</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">identify_coincidences</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">networks</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">generate_all_networks</span><span class="p">()</span>
+        
+    <span class="k">if</span> <span class="n">analytics</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">generate_analytics</span><span class="p">(</span><span class="n">networks</span> <span class="o">=</span> <span class="n">networks</span><span class="p">)</span>
+    
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="n">file_address</span><span class="p">)</span>
+    <span class="n">source_path</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">obj_path</span>
+    <span class="n">target_path</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">obj_path</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">relations</span><span class="o">.</span><span class="n">case_file</span> <span class="o">=</span> <span class="n">SourceFileOf</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;case_source_file&#39;</span><span class="p">,</span> 
+                                                                    <span class="n">source_obj_path</span> <span class="o">=</span> <span class="n">source_path</span><span class="p">,</span>
+                                                                  <span class="n">target_obj_path</span> <span class="o">=</span> <span class="n">target_path</span><span class="p">,</span>
+                                                                <span class="n">parent_obj_path</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">relations</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">obj_path</span><span class="p">)</span>
+    
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">backup</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="import_case_csv_folder"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.import_case_csv_folder">[docs]</a><span class="k">def</span> <span class="nf">import_case_csv_folder</span><span class="p">(</span><span class="n">case_name</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">folder_address</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">file_names</span> <span class="o">=</span> <span class="s1">&#39;default_names&#39;</span><span class="p">,</span> <span class="n">project</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">infer_internet_metadata</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">lookup_whois</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">infer_geolocation_metadata</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">parse</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">keywords</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">coincidences</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">networks</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">analytics</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">make_default</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Imports a Case from a folder of formatted CSV  (.csv) files.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    case_name : str </span>
+<span class="sd">        name for Case. This is intended to be the same string as the Case&#39;s variable name.</span>
+<span class="sd">    folder_address : str </span>
+<span class="sd">        directory address of folder to use. defaults to requesting for user input.</span>
+<span class="sd">    file_names : list </span>
+<span class="sd">        iterable of names of files. Defaults to using a pre-defined &#39;default&#39; list.</span>
+<span class="sd">    project : str </span>
+<span class="sd">        name of Project object Case will be an attribute of. Defaults to None.</span>
+<span class="sd">    infer_internet_metadata : bool </span>
+<span class="sd">        whether to infer additional internet metadata from internet metadata provided.</span>
+<span class="sd">    lookup_whois : bool </span>
+<span class="sd">        whether to run WhoIs lookups on items.</span>
+<span class="sd">    infer_geolocation_metadata : bool </span>
+<span class="sd">        whether to infer additional geolocation metadata from geolocation metadata provided.</span>
+<span class="sd">    make_default : bool </span>
+<span class="sd">        whether to make the Case object the default csae in the environment.</span>
+<span class="sd">    parse : bool </span>
+<span class="sd">        whether to parse the case&#39;s raw data.</span>
+<span class="sd">    keywords : bool </span>
+<span class="sd">        whether to generate keywords from parsed data.</span>
+<span class="sd">    indexes : bool </span>
+<span class="sd">        whether to index Case items, entities, and events by their contents.</span>
+<span class="sd">    coincidences : bool </span>
+<span class="sd">        whether to analyse patterns of coinciding data.</span>
+<span class="sd">    networks : bool </span>
+<span class="sd">        whether to generate core networks from Case items.</span>
+<span class="sd">    analytics : bool </span>
+<span class="sd">        whether to generate Case analytics.</span>
+<span class="sd">    make_default : bool </span>
+<span class="sd">        whether to make the Case object the default case in the environment.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Case</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">case_name</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">case_name</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Case name: &#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">folder_address</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">folder_address</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Case folder address: &#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">file_names</span> <span class="o">==</span> <span class="s1">&#39;default_names&#39;</span><span class="p">:</span>
+        
+        <span class="n">metadata_address</span> <span class="o">=</span> <span class="n">folder_address</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="s1">&#39;item_metadata.csv&#39;</span>
+        <span class="n">info_address</span> <span class="o">=</span> <span class="n">folder_address</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="s1">&#39;item_information.csv&#39;</span>
+        <span class="n">data_address</span> <span class="o">=</span> <span class="n">folder_address</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="s1">&#39;item_data.csv&#39;</span>
+        <span class="n">other_address</span> <span class="o">=</span> <span class="n">folder_address</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="s1">&#39;item_other.csv&#39;</span>
+        
+    <span class="k">else</span><span class="p">:</span>
+        
+        <span class="n">metadata_filename</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Metadata file name: &#39;</span><span class="p">)</span>
+        <span class="n">metadata_address</span> <span class="o">=</span> <span class="n">folder_address</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">metadata_filename</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+        
+        <span class="n">info_filename</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Information file name: &#39;</span><span class="p">)</span>
+        <span class="n">info_address</span> <span class="o">=</span> <span class="n">folder_address</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">info_filename</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+        
+        <span class="n">data_filename</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Raw data file name: &#39;</span><span class="p">)</span>
+        <span class="n">data_address</span> <span class="o">=</span> <span class="n">folder_address</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">data_filename</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+        
+        <span class="n">other_filename</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Other data file name: &#39;</span><span class="p">)</span>
+        <span class="n">other_address</span> <span class="o">=</span> <span class="n">folder_address</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">other_filename</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+    
+    <span class="n">metadata_import</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">metadata_address</span><span class="p">,</span> <span class="n">header</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index_col</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">object</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">({</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">:</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">})</span>
+    <span class="n">info_import</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">info_address</span><span class="p">,</span> <span class="n">header</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index_col</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">object</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">({</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">:</span> <span class="kc">None</span><span class="p">})</span>
+    <span class="n">data_import</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data_address</span><span class="p">,</span> <span class="n">header</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index_col</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">object</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">({</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">:</span> <span class="kc">None</span><span class="p">})</span>
+    <span class="n">other_import</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">other_address</span><span class="p">,</span> <span class="n">header</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index_col</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">object</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">({</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">:</span> <span class="kc">None</span><span class="p">})</span>
+    
+    <span class="n">caseobj_from_df_imports</span><span class="p">(</span>
+                    <span class="n">case_name</span> <span class="o">=</span> <span class="n">case_name</span><span class="p">,</span> 
+                    <span class="n">project</span> <span class="o">=</span> <span class="n">project</span><span class="p">,</span>
+                     <span class="n">metadata_import</span> <span class="o">=</span> <span class="n">metadata_import</span><span class="p">,</span> 
+                     <span class="n">info_import</span> <span class="o">=</span> <span class="n">info_import</span><span class="p">,</span> 
+                     <span class="n">data_import</span> <span class="o">=</span> <span class="n">data_import</span><span class="p">,</span> 
+                     <span class="n">other_import</span> <span class="o">=</span> <span class="n">other_import</span><span class="p">,</span>
+                     <span class="n">make_default</span> <span class="o">=</span> <span class="n">make_default</span><span class="p">,</span>
+                        <span class="n">infer_internet_metadata</span> <span class="o">=</span> <span class="n">infer_internet_metadata</span><span class="p">,</span>
+                        <span class="n">infer_geolocation_metadata</span> <span class="o">=</span> <span class="n">infer_geolocation_metadata</span><span class="p">,</span>
+                        <span class="n">lookup_whois</span> <span class="o">=</span> <span class="n">lookup_whois</span>
+                    <span class="p">)</span>
+    
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">file_location</span> <span class="o">=</span> <span class="n">folder_address</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">file_type</span> <span class="o">=</span> <span class="s1">&#39;.CSV folder&#39;</span>
+    
+    <span class="k">if</span> <span class="n">parse</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">parse_rawdata</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">keywords</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">generate_keywords</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">generate_indexes</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">networks</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">generate_all_networks</span><span class="p">()</span>
+        
+    <span class="k">if</span> <span class="n">analytics</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">generate_analytics</span><span class="p">(</span><span class="n">networks</span> <span class="o">=</span> <span class="n">networks</span><span class="p">)</span>
+    
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="n">folder_address</span><span class="p">)</span>
+    <span class="n">source_path</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">obj_path</span>
+    <span class="n">target_path</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">obj_path</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">relations</span><span class="o">.</span><span class="n">case_file</span> <span class="o">=</span> <span class="n">SourceFileOf</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;case_source_file&#39;</span><span class="p">,</span> 
+                                                                    <span class="n">source_obj_path</span> <span class="o">=</span> <span class="n">source_path</span><span class="p">,</span>
+                                                                  <span class="n">target_obj_path</span> <span class="o">=</span> <span class="n">target_path</span><span class="p">,</span>
+                                                                <span class="n">parent_obj_path</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">relations</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">obj_path</span><span class="p">)</span>
+    
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">add_all_children</span><span class="p">()</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">backup</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span></div>
+
+<span class="c1">## Something related to the WhoIs lookups and Geocoder package cause the import/export pickle functions to fail.</span>
+<span class="c1">## It happens when the exported case object included items that have WhoIs results.</span>
+
+<div class="viewcode-block" id="import_case_pickle"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.import_case_pickle">[docs]</a><span class="k">def</span> <span class="nf">import_case_pickle</span><span class="p">(</span><span class="n">case_name</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">file_address</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">make_default</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Imports a Case from a pickled text file (.txt or .case).</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    case_name : str </span>
+<span class="sd">        name for Case. This is intended to be the same string as the Case&#39;s variable name.</span>
+<span class="sd">    file_address : str </span>
+<span class="sd">        directory address to create file in. defaults to requesting for user input.</span>
+<span class="sd">    make_default : bool </span>
+<span class="sd">        whether to make the Case object the default csae in the environment.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Case</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">case_name</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">case_name</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Case name: &#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">file_address</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">file_address</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;File address: &#39;</span><span class="p">)</span>
+    
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_address</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">file_location</span> <span class="o">=</span> <span class="n">file_address</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">file_type</span> <span class="o">=</span> <span class="s1">&#39;.case&#39;</span>
+    
+    <span class="k">if</span> <span class="n">make_default</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">make_default</span><span class="p">()</span>
+    
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="n">file_address</span><span class="p">)</span>
+    <span class="n">source_path</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">obj_path</span>
+    <span class="n">target_path</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">case_path</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">relations</span><span class="o">.</span><span class="n">case_file</span> <span class="o">=</span> <span class="n">SourceFileOf</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;case_source_file&#39;</span><span class="p">,</span> 
+                                                                    <span class="n">source_obj_path</span> <span class="o">=</span> <span class="n">source_path</span><span class="p">,</span>
+                                                                  <span class="n">target_obj_path</span> <span class="o">=</span> <span class="n">target_path</span><span class="p">,</span>
+                                                                <span class="n">parent_obj_path</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">relations</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">obj_path</span><span class="p">)</span>
+    
+    <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span><span class="o">.</span><span class="n">backup</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">case_name</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="import_case_txt"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.import_case_txt">[docs]</a><span class="k">def</span> <span class="nf">import_case_txt</span><span class="p">(</span><span class="n">case_name</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">file_address</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">make_default</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Imports a Case from a pickled text file (.txt or .case).</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    case_name : str </span>
+<span class="sd">        name for Case. This is intended to be the same string as the Case&#39;s variable name.</span>
+<span class="sd">    file_address : str </span>
+<span class="sd">        directory address to create file in. defaults to requesting for user input.</span>
+<span class="sd">    make_default : bool </span>
+<span class="sd">        whether to make the Case object the default csae in the environment.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Case</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">return</span> <span class="n">import_case_pickle</span><span class="p">(</span><span class="n">case_name</span> <span class="o">=</span> <span class="n">case_name</span><span class="p">,</span> <span class="n">file_address</span> <span class="o">=</span> <span class="n">file_address</span><span class="p">,</span> <span class="n">make_default</span> <span class="o">=</span> <span class="n">make_default</span><span class="p">)</span>            </div>
+
+<span class="c1">## Global functions for interacting with case objects</span>
+
+<div class="viewcode-block" id="open_case"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.open_case">[docs]</a><span class="k">def</span> <span class="nf">open_case</span><span class="p">(</span><span class="n">case_name</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">file_address</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">make_default</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Opens a Case from a file.</span>
+<span class="sd">    </span>
+<span class="sd">    File types:</span>
+<span class="sd">        * .case (a custom .txt file)</span>
+<span class="sd">        * .txt (if pickled)</span>
+<span class="sd">        * .xlsx</span>
+<span class="sd">        * .csv</span>
+<span class="sd">        * folder of .csv files.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    case_name : str </span>
+<span class="sd">        name for Case. This is intended to be the same string as the Case&#39;s variable name.</span>
+<span class="sd">    file_address : str </span>
+<span class="sd">        directory address to create file in. defaults to requesting for user input.</span>
+<span class="sd">    make_default : bool </span>
+<span class="sd">        whether to make the Case object the default csae in the environment.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Case</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">case_name</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">case_name</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Case name: &#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">file_address</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">file_address</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;address: &#39;</span><span class="p">)</span>
+    
+    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_address</span><span class="p">)</span>
+    <span class="n">is_dir</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">is_dir</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">import_case_csv_folder</span><span class="p">(</span><span class="n">case_name</span> <span class="o">=</span> <span class="n">case_name</span><span class="p">,</span> <span class="n">folder_address</span> <span class="o">=</span> <span class="n">file_address</span><span class="p">,</span> <span class="n">file_names</span> <span class="o">=</span> <span class="s1">&#39;default_names&#39;</span><span class="p">,</span> <span class="n">project</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">infer_internet_metadata</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">lookup_whois</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">infer_geolocation_metadata</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">parse</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">keywords</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">coincidences</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">networks</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">analytics</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">make_default</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    
+    <span class="k">else</span><span class="p">:</span>
+    
+        <span class="n">file_end</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span>
+    
+    <span class="k">if</span> <span class="n">file_end</span> <span class="o">==</span> <span class="s1">&#39;.xlsx&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">import_case_excel</span><span class="p">(</span><span class="n">case_name</span> <span class="o">=</span> <span class="n">case_name</span><span class="p">,</span> <span class="n">file_address</span> <span class="o">=</span> <span class="n">file_address</span><span class="p">,</span> <span class="n">make_default</span> <span class="o">=</span> <span class="n">make_default</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="p">(</span><span class="n">file_end</span> <span class="o">==</span> <span class="s1">&#39;.case&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">file_end</span> <span class="o">==</span> <span class="s1">&#39;.txt&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">import_case_pickle</span><span class="p">(</span><span class="n">case_name</span> <span class="o">=</span> <span class="n">case_name</span><span class="p">,</span> <span class="n">file_address</span> <span class="o">=</span> <span class="n">file_address</span><span class="p">,</span> <span class="n">make_default</span> <span class="o">=</span> <span class="n">make_default</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="save_as"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.save_as">[docs]</a><span class="k">def</span> <span class="nf">save_as</span><span class="p">(</span><span class="n">case</span> <span class="o">=</span> <span class="s1">&#39;default_case&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Saves a Case to a file. Requests file details from user input.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    case : str </span>
+<span class="sd">        name of Case object to save.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">case</span> <span class="o">==</span> <span class="s1">&#39;default_case&#39;</span><span class="p">:</span>
+        <span class="n">case</span> <span class="o">=</span> <span class="n">get_default_case</span><span class="p">()</span>
+    
+    <span class="k">case</span><span class="o">.</span><span class="n">save_as</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="save"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.save">[docs]</a><span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="n">case</span> <span class="o">=</span> <span class="s1">&#39;default_case&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Saves a Case to its source file. If no file exists, requests file details from user input.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    case : str </span>
+<span class="sd">        name of Case object to save.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">case</span> <span class="o">==</span> <span class="s1">&#39;default_case&#39;</span><span class="p">:</span>
+        <span class="n">case</span> <span class="o">=</span> <span class="n">get_default_case</span><span class="p">()</span>
+    
+    <span class="k">case</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="sync_items"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.sync_items">[docs]</a><span class="k">def</span> <span class="nf">sync_items</span><span class="p">(</span><span class="n">case</span> <span class="o">=</span> <span class="s1">&#39;default_case&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Synchronises a Case&#39;s items and dataframes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">case</span> <span class="o">==</span> <span class="s1">&#39;default_case&#39;</span><span class="p">:</span>
+        <span class="n">case</span> <span class="o">=</span> <span class="n">get_default_case</span><span class="p">()</span>
+    
+    <span class="k">case</span><span class="o">.</span><span class="n">sync_items</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="update_case"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.general.update_case">[docs]</a><span class="k">def</span> <span class="nf">update_case</span><span class="p">(</span><span class="n">case</span> <span class="o">=</span> <span class="s1">&#39;default_case&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Updates a Case&#39;s contents and analytics.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">case</span> <span class="o">==</span> <span class="s1">&#39;default_case&#39;</span><span class="p">:</span>
+        <span class="n">case</span> <span class="o">=</span> <span class="n">get_default_case</span><span class="p">()</span>
+    
+    <span class="k">case</span><span class="o">.</span><span class="n">update_case</span><span class="p">()</span></div>
+    
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.text.information_extraction &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">ida</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ida.text.information_extraction</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ida.text.information_extraction</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">..datasets</span> <span class="kn">import</span> <span class="n">all_personal_names</span><span class="p">,</span> <span class="n">first_names</span><span class="p">,</span> <span class="n">last_names</span><span class="p">,</span> <span class="n">nltk_names</span><span class="p">,</span> <span class="n">countries_all</span><span class="p">,</span> <span class="n">country_names</span><span class="p">,</span> <span class="n">cities_all</span><span class="p">,</span> <span class="n">cities_en</span><span class="p">,</span> <span class="n">language_names</span><span class="p">,</span> <span class="n">languages_en</span><span class="p">,</span> <span class="n">language_codes</span><span class="p">,</span> <span class="n">stopwords</span><span class="p">,</span> <span class="n">languages_all</span><span class="p">,</span> <span class="n">countries_zh</span><span class="p">,</span> <span class="n">countries_ar</span><span class="p">,</span> <span class="n">countries_es</span><span class="p">,</span> <span class="n">countries_hi</span><span class="p">,</span> <span class="n">countries_pt</span><span class="p">,</span> <span class="n">countries_ru</span><span class="p">,</span> <span class="n">countries_fr</span><span class="p">,</span> <span class="n">nltk_words_list</span><span class="p">,</span> <span class="n">nltk_webtext_words</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<div class="viewcode-block" id="extract_names"><a class="viewcode-back" href="../../../ida.text.html#ida.text.information_extraction.extract_names">[docs]</a><span class="k">def</span> <span class="nf">extract_names</span><span class="p">(</span><span class="n">words</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;all_personal_names&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a list of words and returns all words that appear in a pre-defined list of names.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    words : list, set, or tuple</span>
+<span class="sd">        iterable of strings to analyse.</span>
+<span class="sd">    source : str</span>
+<span class="sd">        name of corpus of names to use for comparison.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : list</span>
+<span class="sd">        extracted names.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">        * &#39;all_personal_names&#39; corpus includes first names and last names from a large number of languages. It features &gt;1,000,000 names.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Formatting words list and removing duplicates</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">words</span><span class="p">}</span>
+    
+    
+    
+    <span class="c1"># Retrieving specified name corpus and formatting it</span>
+    <span class="n">names_set</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="s1">&#39;all_personal_names&#39;</span><span class="p">:</span>
+   
+        <span class="k">global</span> <span class="n">all_personal_names</span>
+        <span class="n">names_set</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">all_personal_names</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="s1">&#39;first_names&#39;</span><span class="p">:</span>
+        
+        <span class="k">global</span> <span class="n">first_names</span>
+        <span class="n">names_set</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">first_names</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="s1">&#39;last_names&#39;</span><span class="p">:</span>
+        
+        <span class="k">global</span> <span class="n">last_names</span>
+        <span class="n">names_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">last_names</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
+    
+    <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="s1">&#39;nltk_names&#39;</span><span class="p">:</span>
+        
+        <span class="k">global</span> <span class="n">nltk_names</span>
+        <span class="n">names_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">nltk_names</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
+    
+    <span class="k">if</span> <span class="n">names_set</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">names_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+    
+    <span class="c1"># Identifying intersection of names list and words list. Converting to a list.</span>
+    <span class="n">extracted_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">words</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">names_set</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">extracted_names</span></div>
+    
+
+<div class="viewcode-block" id="extract_countries"><a class="viewcode-back" href="../../../ida.text.html#ida.text.information_extraction.extract_countries">[docs]</a><span class="k">def</span> <span class="nf">extract_countries</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">language</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a list of words and returns all words that appear in a pre-defined list of countries.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    words : list, set, or tuple</span>
+<span class="sd">        iterable of strings to analyse.</span>
+<span class="sd">    language : str</span>
+<span class="sd">        language of corpus of countries to use for comparison.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : list</span>
+<span class="sd">        extracted country names.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">        * &#39;all&#39; corpus includes country names from a large number of languages.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Formatting words list and removing duplicates</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">words</span><span class="p">}</span>
+    
+    <span class="c1"># Retrieving all country names corpus and formatting it</span>
+    <span class="k">if</span> <span class="n">language</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+        
+        <span class="k">global</span> <span class="n">countries_all</span>
+        <span class="n">countries_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">countries_all</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
+    
+    <span class="c1"># Retrieving country names corpus if a language is specified and formatting it</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">global</span> <span class="n">country_names</span>
+        <span class="n">countries</span> <span class="o">=</span> <span class="n">country_names</span><span class="p">[</span><span class="n">language</span><span class="p">]</span>
+        <span class="n">countries_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">countries</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
+    
+    <span class="c1"># Identifying intersection of country names corpus and words list. Converting to a list.</span>
+    <span class="n">extracted_countries</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">words</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">countries_set</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">extracted_countries</span></div>
+    
+
+<div class="viewcode-block" id="extract_cities"><a class="viewcode-back" href="../../../ida.text.html#ida.text.information_extraction.extract_cities">[docs]</a><span class="k">def</span> <span class="nf">extract_cities</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">language</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a list of words and returns all words that appear in a pre-defined list of cities.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    words : list, set, or tuple</span>
+<span class="sd">        iterable of strings to analyse.</span>
+<span class="sd">    language : str</span>
+<span class="sd">        language of corpus of city names to use for comparison.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : list</span>
+<span class="sd">        extracted city names.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">        * &#39;all&#39; corpus includes city names from a large number of languages.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Formatting words list and removing duplicates</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">words</span><span class="p">}</span>
+    
+    <span class="c1"># Retrieving all city names corpus and formatting it</span>
+    <span class="k">if</span> <span class="n">language</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+        
+        <span class="k">global</span> <span class="n">cities_all</span>
+        <span class="n">cities_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">cities_all</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
+    
+    <span class="c1"># Retrieving city names corpus if the language is specified as English and formatting it</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">language</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;en&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">language</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;english&#39;</span><span class="p">):</span>
+        
+        <span class="k">global</span> <span class="n">cities_en</span>
+        <span class="n">cities</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cities_en</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">cities_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">cities</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
+    
+    <span class="c1"># Identifying intersection of city names corpus and words list. Converting to a list.</span>
+    <span class="n">extracted_cities</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">words</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">cities_set</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">extracted_cities</span></div>
+    
+
+<div class="viewcode-block" id="extract_languages"><a class="viewcode-back" href="../../../ida.text.html#ida.text.information_extraction.extract_languages">[docs]</a><span class="k">def</span> <span class="nf">extract_languages</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">language</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a list of words and returns all words that appear in a pre-defined list of language names.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    words : list, set, or tuple</span>
+<span class="sd">        iterable of strings to analyse.</span>
+<span class="sd">    language : str</span>
+<span class="sd">        language of corpus of language names to use for comparison.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : list</span>
+<span class="sd">        extracted language names.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">        * &#39;all&#39; corpus includes language names from a large number of languages.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Formatting words list and removing duplicates</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">words</span><span class="p">}</span>
+    
+    <span class="c1"># Retrieving all language names corpus and formatting it</span>
+    <span class="k">if</span> <span class="n">language</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+        
+        <span class="k">global</span> <span class="n">languages_all</span>
+        <span class="n">langs_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">languages_all</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
+    
+    <span class="c1"># Retrieving language names corpus if the language is specified as English and formatting it</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">language</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;en&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">language</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;english&#39;</span><span class="p">):</span>
+        
+        <span class="k">global</span> <span class="n">languages_en</span>
+        <span class="n">langs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">languages_en</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">langs_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">langs</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
+    
+    <span class="c1"># Identifying intersection of city names corpus and words list. Converting to a list.</span>
+    <span class="n">extracted_langs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">words</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">langs_set</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">extracted_langs</span></div>
+    
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

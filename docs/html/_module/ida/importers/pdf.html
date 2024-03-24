@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.importers.pdf &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">ida</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ida.importers.pdf</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ida.importers.pdf</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Functions to load and parse PDFs&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">..core.cleaners</span> <span class="kn">import</span> <span class="n">is_datetime</span><span class="p">,</span> <span class="n">str_to_datetime</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">PyPDF2</span> <span class="kn">import</span> <span class="n">PdfFileReader</span><span class="p">,</span> <span class="n">PdfReader</span><span class="p">,</span> <span class="n">PdfWriter</span>
+
+<div class="viewcode-block" id="pdf_to_dict"><a class="viewcode-back" href="../../../ida.importers.html#ida.importers.pdf.pdf_to_dict">[docs]</a><span class="k">def</span> <span class="nf">pdf_to_dict</span><span class="p">(</span><span class="n">file_path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads PDF from file and outputs data as a dictionary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting file address from user input if none provided</span>
+    <span class="k">if</span> <span class="n">file_path</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">file_path</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;File path: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Reading PDF file</span>
+    <span class="n">pdf_file</span> <span class="o">=</span> <span class="n">PdfReader</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> 
+    
+    <span class="c1"># Extracting metadata</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="n">pdf_file</span><span class="o">.</span><span class="n">metadata</span>
+    
+    <span class="c1"># Iterating throigh pages and extracting text</span>
+    <span class="n">first_page_raw</span> <span class="o">=</span> <span class="n">pdf_file</span><span class="o">.</span><span class="n">pages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">raw_text</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pdf_file</span><span class="o">.</span><span class="n">pages</span><span class="p">:</span>
+        <span class="n">raw_text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">extract_text</span><span class="p">())</span>
+    
+    <span class="c1"># Joining text list to make string</span>
+    <span class="n">full_text</span> <span class="o">=</span> <span class="s1">&#39; </span><span class="se">\n</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">raw_text</span><span class="p">)</span>
+    
+    <span class="c1"># Cleaning text</span>
+    <span class="n">full_text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\s+[0-9]+\s&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">full_text</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">,</span> <span class="s1">&#39; &lt;p&gt; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39; </span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;  &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Creating output dictionary </span>
+    <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;metadata&#39;</span><span class="p">:</span> <span class="n">info</span><span class="p">,</span>
+                  <span class="s1">&#39;raw&#39;</span><span class="p">:</span> <span class="n">raw_text</span><span class="p">,</span>
+                  <span class="s1">&#39;first_page&#39;</span><span class="p">:</span> <span class="n">first_page_raw</span><span class="p">,</span>
+                  <span class="s1">&#39;full_text&#39;</span><span class="p">:</span> <span class="n">full_text</span><span class="p">}</span>
+    
+    <span class="k">return</span> <span class="n">output_dict</span></div>
+
+
+<div class="viewcode-block" id="pdf_url_to_dict"><a class="viewcode-back" href="../../../ida.importers.html#ida.importers.pdf.pdf_url_to_dict">[docs]</a><span class="k">def</span> <span class="nf">pdf_url_to_dict</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads PDF from URL and outputs data as a dictionary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none provided</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Setting browser headers for site request</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;User-Agent&#39;</span><span class="p">:</span> <span class="s1">&#39;Mozilla/5.0 (X11; Windows; Windows x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36&#39;</span><span class="p">}</span>
+    
+    <span class="c1"># Retrieving PDF data</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span>
+    <span class="n">on_fly_mem_obj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+    <span class="n">pdf_file</span> <span class="o">=</span> <span class="n">PdfReader</span><span class="p">(</span><span class="n">on_fly_mem_obj</span><span class="p">)</span>
+    
+    <span class="c1"># Extracting metadata</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="n">pdf_file</span><span class="o">.</span><span class="n">metadata</span>
+    
+    <span class="c1"># Iterating throigh pages and extracting text</span>
+    <span class="n">first_page_raw</span> <span class="o">=</span> <span class="n">pdf_file</span><span class="o">.</span><span class="n">pages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">extract_text</span><span class="p">()</span>
+    <span class="n">raw_text</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pdf_file</span><span class="o">.</span><span class="n">pages</span><span class="p">:</span>
+        <span class="n">raw_text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">extract_text</span><span class="p">())</span>
+    
+    <span class="c1"># Joining text list to make string</span>
+    <span class="n">full_text</span> <span class="o">=</span> <span class="s1">&#39; </span><span class="se">\n</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">raw_text</span><span class="p">)</span>
+    
+    <span class="c1"># Cleaning text</span>
+    <span class="n">full_text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\s+[0-9]+\s&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">full_text</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">,</span> <span class="s1">&#39; &lt;p&gt; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39; </span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;  &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Creating output dictionary</span>
+    <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;metadata&#39;</span><span class="p">:</span> <span class="n">info</span><span class="p">,</span>
+                  <span class="s1">&#39;raw&#39;</span><span class="p">:</span> <span class="n">raw_text</span><span class="p">,</span>
+                  <span class="s1">&#39;first_page&#39;</span><span class="p">:</span> <span class="n">first_page_raw</span><span class="p">,</span>
+                  <span class="s1">&#39;full_text&#39;</span><span class="p">:</span> <span class="n">full_text</span><span class="p">}</span>
+    
+    <span class="k">return</span> <span class="n">output_dict</span></div>
+
+
+<div class="viewcode-block" id="parse_pdf_text"><a class="viewcode-back" href="../../../ida.importers.html#ida.importers.pdf.parse_pdf_text">[docs]</a><span class="k">def</span> <span class="nf">parse_pdf_text</span><span class="p">(</span><span class="n">input_data</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses text from PDF reader result.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Checking type of input data and defining text variable for parsing</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">input_data</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span> <span class="o">==</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;full_text&#39;</span> <span class="ow">in</span> <span class="n">input_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">[</span><span class="s1">&#39;full_text&#39;</span><span class="p">]</span>
+    
+    <span class="c1"># Splitting text by line breaks</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Calculating mean length of lines</span>
+    <span class="n">mean_length</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">len</span><span class="p">)</span><span class="o">.</span><span class="n">describe</span><span class="p">()[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span>
+    
+    <span class="c1"># Reformatting lines to reduce errors from PDF import</span>
+    <span class="n">new_lines</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="c1"># Iterating through each line</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        
+        <span class="c1"># Checking if line is relatively short for document (under 20% of mean)</span>
+        <span class="k">if</span> <span class="n">length</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">mean_length</span> <span class="o">/</span> <span class="mi">5</span><span class="p">):</span>
+            
+            <span class="c1"># If the length is 2 characters or more, adds line to previous line</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">length</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">i</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">new_line</span> <span class="o">=</span> <span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                
+                <span class="c1"># Removing previous line to prevent duplicates</span>
+                <span class="k">if</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">new_lines</span><span class="p">:</span>
+                    <span class="n">new_lines</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                
+                <span class="c1"># Appending result to list</span>
+                <span class="n">new_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_line</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If line is not shorter than minumum, appending line to lines</span>
+            <span class="k">if</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">new_lines</span><span class="p">:</span>
+                <span class="n">new_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    
+    <span class="c1"># Cleaning text</span>
+    <span class="n">new_lines</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">new_lines</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; \.&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">regex</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; ;&#39;</span><span class="p">,</span> <span class="s1">&#39;;&#39;</span><span class="p">,</span> <span class="n">regex</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; :&#39;</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">regex</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; ,&#39;</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">regex</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+    
+    <span class="c1"># Rejoining text to form string</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&lt;p&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;  &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Removing paragraph tags</span>
+    <span class="n">new_lines</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">new_lines</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&lt;p&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">regex</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+    
+    <span class="c1"># Creating output dictionary</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;top&#39;</span><span class="p">:</span> <span class="n">new_lines</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span>
+             <span class="s1">&#39;main_body&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">[:</span><span class="n">refs_index</span><span class="p">]}</span>
+    
+    <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="parse_pdf_links"><a class="viewcode-back" href="../../../ida.importers.html#ida.importers.pdf.parse_pdf_links">[docs]</a><span class="k">def</span> <span class="nf">parse_pdf_links</span><span class="p">(</span><span class="n">input_data</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses links from PDF reader result.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Checking type of input data and defining variables for parsing</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span> <span class="o">==</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;first_page&#39;</span> <span class="ow">in</span> <span class="n">input_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39; ~~~~~ &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_data</span><span class="p">[</span><span class="s1">&#39;raw&#39;</span><span class="p">])</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span>
+    
+    <span class="c1"># Checking if text contains web links</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">&#39;https://&#39;</span> <span class="ow">in</span> <span class="n">text</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;http://&#39;</span> <span class="ow">in</span> <span class="n">text</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;www.&#39;</span> <span class="ow">in</span> <span class="n">text</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;.co&#39;</span> <span class="ow">in</span> <span class="n">text</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;.gov&#39;</span> <span class="ow">in</span> <span class="n">text</span><span class="p">)</span>
+        <span class="p">):</span>
+            
+            <span class="c1"># Cleaning text</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; /&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; :&#39;</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;’&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;{&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;□&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;“&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;”&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;^&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;©&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;   &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;  &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
+            
+            <span class="c1"># Splitting text into strings</span>
+            <span class="n">text_split</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+            
+            <span class="c1"># Extracting potential links</span>
+            <span class="n">links_res</span> <span class="o">=</span> <span class="p">[</span>
+                            <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">text_split</span> <span class="k">if</span> <span class="p">(</span>
+                                                    <span class="p">(</span><span class="s1">&#39;https:&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> 
+                                                    <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;http:&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> 
+                                                    <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;www.&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+                                                    <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;.com&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+                                                    <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;.org&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+                                                    <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;.net&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+                                                    <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;.io&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+                                                    <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;.co.uk&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+                                                    <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;.co&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+                                                    <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;.gov&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+                                                    <span class="p">)</span>
+                        <span class="p">]</span>
+            
+            <span class="c1"># Cleaning links</span>
+            <span class="n">links</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;source:&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;See:&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;vSee:&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;Abstract&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;Guard.iii&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">links_res</span><span class="p">]</span>
+            
+            <span class="c1"># Removing very string strings that are unlikely to be valid links</span>
+            <span class="n">links</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">links</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">]</span>
+            
+            <span class="c1"># Removing repeats</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">links</span><span class="p">))</span>
+            
+            <span class="k">return</span> <span class="n">result</span></div>
+    
+
+<div class="viewcode-block" id="parse_pdf_authors"><a class="viewcode-back" href="../../../ida.importers.html#ida.importers.pdf.parse_pdf_authors">[docs]</a><span class="k">def</span> <span class="nf">parse_pdf_authors</span><span class="p">(</span><span class="n">input_data</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Identifies author details from PDF reader result.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Checking type of input data and defining variables for parsing</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span> <span class="o">==</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;first_page&#39;</span> <span class="ow">in</span> <span class="n">input_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">[</span><span class="s1">&#39;first_page&#39;</span><span class="p">]</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span>
+    
+    <span class="c1"># Creating output variable</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="c1"># Checking for author metadata with key &#39;/Author&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;/Author&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        
+        <span class="c1"># Retrieving metadata</span>
+        <span class="n">auth</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;/Author&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># Cleaning metadata</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">auth</span> <span class="o">!=</span> <span class="s1">&#39;OscarWilde&#39;</span><span class="p">)</span> 
+            <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">auth</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="p">):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">auth</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; and &quot;</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;  &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;authors&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Authors&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;author&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Author&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        
+        <span class="k">return</span> <span class="n">result</span>
+    
+    <span class="c1"># Checking for author metadata with key &#39;Author&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;Author&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            
+            <span class="c1"># Retrieving metadata</span>
+            <span class="n">auth</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Author&#39;</span><span class="p">])</span>
+            
+            <span class="c1"># Cleaning metadata</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">auth</span> <span class="o">!=</span> <span class="s1">&#39;OscarWilde&#39;</span><span class="p">)</span> 
+                <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">auth</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="p">):</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">auth</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; and &quot;</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;  &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;authors&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Authors&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;author&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Author&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">result</span>
+        
+    <span class="c1"># Checking for author metadata with key &#39;/author&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;/author&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        
+                <span class="c1"># Retrieving metadata</span>
+                <span class="n">auth</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;/author&#39;</span><span class="p">])</span>
+                
+                <span class="c1"># Cleaning metadata</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="p">(</span><span class="n">auth</span> <span class="o">!=</span> <span class="s1">&#39;OscarWilde&#39;</span><span class="p">)</span> 
+                    <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">auth</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="p">):</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">auth</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; and &quot;</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;  &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;authors&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Authors&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;author&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Author&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">result</span>
+            
+    <span class="c1"># Checking for author metadata with key &#39;author&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;author&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        
+                <span class="c1"># Retrieving metadata</span>
+                <span class="n">auth</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;author&#39;</span><span class="p">])</span>
+                
+                <span class="c1"># Cleaning metadata</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="p">(</span><span class="n">auth</span> <span class="o">!=</span> <span class="s1">&#39;OscarWilde&#39;</span><span class="p">)</span> 
+                    <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">auth</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="p">):</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">auth</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; and &quot;</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;  &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;authors&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Authors&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;author&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Author&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">result</span>
+    
+    <span class="c1"># If no author metadata found, tries to extract it from text</span>
+    <span class="k">else</span><span class="p">:</span>
+        
+        <span class="c1"># Checking if authors are named in text</span>
+        <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;author&#39;</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;by&#39;</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+            
+                        <span class="c1"># Splitting text into lines</span>
+                        <span class="n">fp_lines</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    
+                        <span class="c1"># Cleaning text to identify author name strings</span>
+                        <span class="n">cleaned_lines</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">fp_lines</span><span class="p">:</span>
+                            <span class="n">i_lower</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                            <span class="k">if</span> <span class="p">((</span><span class="s1">&#39;author &#39;</span> <span class="ow">in</span> <span class="n">i_lower</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;author:&#39;</span> <span class="ow">in</span> <span class="n">i_lower</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;authors&#39;</span> <span class="ow">in</span> <span class="n">i_lower</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;by:&#39;</span> <span class="ow">in</span> <span class="n">i_lower</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;et al.&#39;</span> <span class="ow">in</span> <span class="n">i_lower</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;: &#39;</span> <span class="ow">in</span> <span class="n">i_lower</span><span class="p">)):</span>
+                                <span class="n">cleaned_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; .&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+                                
+                        <span class="c1"># Cleaning text to identify author name strings, round 2</span>
+                        <span class="n">split_lines</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">cleaned_lines</span><span class="p">:</span>
+                            <span class="n">split_line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&amp;&#39;</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;et al&#39;</span><span class="p">,</span> <span class="s1">&#39;et al.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; ,&#39;</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">split_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">split_line</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+                            <span class="k">except</span><span class="p">:</span>
+                                <span class="n">split_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">split_line</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                        
+                        <span class="c1"># Creating set of cleaned line segments</span>
+                        <span class="n">lines_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">split_lines</span><span class="p">)</span>
+                        
+                        <span class="c1"># First line in result is assumed to likely contain author names</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            
+                            <span class="c1"># Cleaning text</span>
+                            <span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">lines_set</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; and &quot;</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;  &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;authors&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Authors&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;author&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Author&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+                        <span class="k">except</span><span class="p">:</span>
+                            <span class="kc">None</span>
+        
+            
+        
+        <span class="k">return</span> <span class="n">result</span>    </div>
+
+<div class="viewcode-block" id="parse_pdf_date"><a class="viewcode-back" href="../../../ida.importers.html#ida.importers.pdf.parse_pdf_date">[docs]</a><span class="k">def</span> <span class="nf">parse_pdf_date</span><span class="p">(</span><span class="n">pdf_dict</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses date from PDF reader result.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Checking type of input</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">pdf_dict</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;metadata&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pdf_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="k">return</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Input must be a dictionary of data outputted by parsing PDF&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving metadata</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">pdf_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span>
+    
+    <span class="c1"># Checking for date metadata with key &#39;/CreationDate&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;/CreationDate&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;/CreationDate&#39;</span><span class="p">]</span>
+    
+    <span class="c1"># Checking for date metadata with key &#39;/Date&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;/Date&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">date</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;/Date&#39;</span><span class="p">]</span>
+            
+    <span class="c1"># Checking for date metadata with key &#39;CreationDate&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;CreationDate&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;CreationDate&#39;</span><span class="p">]</span>
+    
+    <span class="c1"># Checking for date metadata with key &#39;creationdate&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;creationdate&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;CreationDate&#39;</span><span class="p">]</span>
+    
+    <span class="c1"># Checking for date metadata with key &#39;Date&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;Date&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">date</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Date&#39;</span><span class="p">]</span>
+            
+    <span class="c1"># Checking for date metadata with key &#39;date&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;date&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">date</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Date&#39;</span><span class="p">]</span>
+    
+    <span class="c1"># Checking if the result is already a datetime object; if yes, returning it</span>
+    <span class="k">if</span> <span class="n">is_datetime</span><span class="p">(</span><span class="n">date</span><span class="p">)</span> <span class="o">!=</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">date</span>
+    
+    <span class="c1"># Else, converting to datetime object</span>
+    <span class="k">else</span><span class="p">:</span>
+        
+        <span class="c1"># Cleaning string</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;D:&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">date</span> <span class="o">=</span> <span class="n">str_to_datetime</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">return</span> <span class="n">date</span></div>
+
+        
+
+<div class="viewcode-block" id="parse_pdf_title"><a class="viewcode-back" href="../../../ida.importers.html#ida.importers.pdf.parse_pdf_title">[docs]</a><span class="k">def</span> <span class="nf">parse_pdf_title</span><span class="p">(</span><span class="n">input_data</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses title from PDF reader result.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Checking type of input data and defining variables for parsing</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span> <span class="o">==</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;first_page&#39;</span> <span class="ow">in</span> <span class="n">input_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">[</span><span class="s1">&#39;first_page&#39;</span><span class="p">]</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span>
+    
+    <span class="c1"># Checking for title metadata with key &#39;/Title&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;/Title&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        
+        <span class="c1"># Retrieving metadata</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;/Title&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># Cleaning metadata</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">title</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> 
+            <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">title</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="p">):</span>
+            <span class="k">return</span> <span class="n">title</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;  &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;titles&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Titles&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Title&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="c1"># Checking for title metadata with key &#39;Title&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;Title&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        
+            <span class="c1"># Retrieving metadata</span>
+            <span class="n">title</span> <span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Title&#39;</span><span class="p">])</span>
+            
+            <span class="c1"># Cleaning metadata</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">title</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> 
+                <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">title</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="p">):</span>
+                <span class="k">return</span> <span class="n">title</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;  &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;titles&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Titles&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Title&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="c1"># Checking for title metadata with key &#39;title&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;title&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        
+            <span class="c1"># Retrieving metadata</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">])</span>
+            
+            <span class="c1"># Cleaning metadata</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">title</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> 
+                <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">title</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="p">):</span>
+                <span class="k">return</span> <span class="n">title</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;  &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;titles&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Titles&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Title&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="c1"># If no title metadata found, looking for title string in text</span>
+    <span class="k">else</span><span class="p">:</span>
+                
+        <span class="n">output</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># Checking if &#39;title&#39; is in text</span>
+        <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;title&#39;</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+                        
+                        <span class="c1"># Splitting text into lines</span>
+                        <span class="n">fp_lines</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                        
+                        <span class="c1"># Removing lines which don&#39;t include &#39;name&#39; or &#39;title&#39;</span>
+                        <span class="n">cleaned_lines</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">fp_lines</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;Title&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;title &#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;title:&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;titles&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;Titles&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;Name&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">):</span>
+                                <span class="n">cleaned_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; .&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+                        
+                        <span class="c1"># Splitting lines into phrases</span>
+                        <span class="n">split_lines</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">cleaned_lines</span><span class="p">:</span>
+            
+                            <span class="n">split_line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;et al&#39;</span><span class="p">,</span> <span class="s1">&#39;et al.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">split_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">split_line</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+                            <span class="k">except</span><span class="p">:</span>
+                                <span class="n">split_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">split_line</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                        
+                        <span class="c1"># Removing duplicates</span>
+                        <span class="n">lines_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">split_lines</span><span class="p">)</span>
+                        
+                        <span class="c1"># Returning first line found, assuming this is more likely to be the title</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            
+                            <span class="c1"># Cleaning string</span>
+                            <span class="n">output</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">lines_set</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;  &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;titles&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Titles&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Title&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                            
+                        <span class="k">except</span><span class="p">:</span>
+                            <span class="n">output</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># If the result so far is None or very short, tries to join result with second and third lines</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">output</span> <span class="o">==</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="o">&lt;</span><span class="mi">5</span><span class="p">):</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39; - &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parse_pdf_text</span><span class="p">(</span><span class="n">input_data</span><span class="p">)[</span><span class="s1">&#39;top&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">if</span> <span class="s1">&#39;authors&#39;</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="kc">None</span>
+            
+        <span class="k">return</span> <span class="n">output</span></div>
+                
+
+<div class="viewcode-block" id="parse_pdf_reader_dict"><a class="viewcode-back" href="../../../ida.importers.html#ida.importers.pdf.parse_pdf_reader_dict">[docs]</a><span class="k">def</span> <span class="nf">parse_pdf_reader_dict</span><span class="p">(</span><span class="n">pdf_dict</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses PDF reader result.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Making copy of source data</span>
+    <span class="n">to_parse</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">pdf_dict</span><span class="p">)</span>
+    
+    <span class="c1"># Initialising output variable</span>
+    <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="c1"># Adding text and metadata to variable</span>
+    <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pdf_dict</span><span class="p">[</span><span class="s1">&#39;raw&#39;</span><span class="p">]</span>
+    <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;full_text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pdf_dict</span><span class="p">[</span><span class="s1">&#39;full_text&#39;</span><span class="p">]</span>
+    <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;attached_metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pdf_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span>
+    
+    <span class="c1"># Trying to extract title</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parse_pdf_title</span><span class="p">(</span><span class="n">to_parse</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="c1"># Trying to extract authors</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;authors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parse_pdf_authors</span><span class="p">(</span><span class="n">to_parse</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;authors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="c1"># Trying to extract date</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parse_pdf_date</span><span class="p">(</span><span class="n">to_parse</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="c1"># Trying to extract links</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;links&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parse_pdf_links</span><span class="p">(</span><span class="n">to_parse</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;links&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="c1"># Trying to extract text</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parse_pdf_text</span><span class="p">(</span><span class="n">to_parse</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="k">return</span> <span class="n">output_dict</span></div>
+
+<div class="viewcode-block" id="read_pdf"><a class="viewcode-back" href="../../../ida.importers.html#ida.importers.pdf.read_pdf">[docs]</a><span class="k">def</span> <span class="nf">read_pdf</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loads and parses PDF file. Returns a dictionary of data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Retrieving PDF data</span>
+    <span class="n">pdf_dict</span> <span class="o">=</span> <span class="n">pdf_to_dict</span><span class="p">(</span><span class="n">file_path</span> <span class="o">=</span> <span class="n">file_path</span><span class="p">)</span>
+    
+    <span class="c1"># Parsing PDF data</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">parse_pdf_reader_dict</span><span class="p">(</span><span class="n">pdf_dict</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">output</span></div>
+    
+
+<div class="viewcode-block" id="read_pdf_url"><a class="viewcode-back" href="../../../ida.importers.html#ida.importers.pdf.read_pdf_url">[docs]</a><span class="k">def</span> <span class="nf">read_pdf_url</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Downloads and parses PDF file from a URL. Returns a dictionary of data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Retrieving PDF data</span>
+    <span class="n">pdf_dict</span> <span class="o">=</span> <span class="n">pdf_url_to_dict</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># Parsing PDF data</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">parse_pdf_reader_dict</span><span class="p">(</span><span class="n">pdf_dict</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">output</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

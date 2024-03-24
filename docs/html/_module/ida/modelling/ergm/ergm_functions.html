@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.modelling.ergm.ergm_functions &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">ida</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ida.modelling.ergm.ergm_functions</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ida.modelling.ergm.ergm_functions</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Functions for running Exponential Random Graph Model (ERGM) analysis on networks.</span>
+
+<span class="sd">Code implementation utilises the RPy2 package to emulate R&#39;s ERGM library. </span>
+
+<span class="sd">Notes</span>
+<span class="sd">-----</span>
+<span class="sd">See documentation:</span>
+<span class="sd">    * RPy2: https://rpy2.github.io/doc/latest/html/index.html</span>
+<span class="sd">    * R ERGM: https://cran.r-project.org/web/packages/ergm/ergm.pdf </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="casenet_fit_ergm"><a class="viewcode-back" href="../../../../ida.modelling.ergm.html#ida.modelling.ergm.ergm_functions.casenet_fit_ergm">[docs]</a><span class="k">def</span> <span class="nf">casenet_fit_ergm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">network</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">terms</span> <span class="o">=</span> <span class="s1">&#39;edges&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fits Expontential Random Graph Model to network from CaseNetworkSet.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    network : str, igraph.Graph, NetworkX, or CaseNetwork</span>
+<span class="sd">        network object to fit ERGM to.</span>
+<span class="sd">    terms : str or list</span>
+<span class="sd">        name or list of name of terms for formula.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : object</span>
+<span class="sd">        fitted ERGM.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting network name from user input if none provided</span>
+    <span class="k">if</span> <span class="n">network</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">network</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Network name: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving network object</span>
+    <span class="n">network</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_network</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+    
+    <span class="c1"># Fitting ERGM</span>
+    <span class="k">return</span> <span class="n">network</span><span class="o">.</span><span class="n">fit_ergm</span><span class="p">(</span><span class="n">terms</span> <span class="o">=</span> <span class="n">terms</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="case_fit_ergm"><a class="viewcode-back" href="../../../../ida.modelling.ergm.html#ida.modelling.ergm.ergm_functions.case_fit_ergm">[docs]</a><span class="k">def</span> <span class="nf">case_fit_ergm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">network</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">terms</span> <span class="o">=</span> <span class="s1">&#39;edges&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fits Expontential Random Graph Model to network from Case.</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    network : str, igraph.Graph, NetworkX, or CaseNetwork</span>
+<span class="sd">        name of network object to fit ERGM to.</span>
+<span class="sd">    terms : str or list</span>
+<span class="sd">        name or list of name of terms for formula.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : object</span>
+<span class="sd">        fitted ERGM.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting network name from user input if none provided</span>
+    <span class="k">if</span> <span class="n">network</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">network</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Network name: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving network object and fitting ERGM</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">networks</span><span class="o">.</span><span class="n">fit_ergm</span><span class="p">(</span><span class="n">network</span> <span class="o">=</span> <span class="n">network</span><span class="p">,</span> <span class="n">terms</span> <span class="o">=</span> <span class="n">terms</span><span class="p">)</span></div>
+    
+
+
+<div class="viewcode-block" id="create_ergm"><a class="viewcode-back" href="../../../../ida.modelling.ergm.html#ida.modelling.ergm.ergm_functions.create_ergm">[docs]</a><span class="k">def</span> <span class="nf">create_ergm</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">terms</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;edges&#39;</span><span class="p">]):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialises an Expontential Random Graph Model using selected terms as modelling parameters.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    network : igraph.Graph, NetworkX, or CaseNetwork</span>
+<span class="sd">        network object to fit ERGM to.</span>
+<span class="sd">    terms : str or list</span>
+<span class="sd">        name or list of name of terms for formula.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : object</span>
+<span class="sd">        fitted ERGM.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Checking type of terms; if string, wrapping as a list</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">terms</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">terms</span><span class="p">]</span>
+    
+    <span class="c1"># Checking type of network; if NetworkX, converting to igraph.Graph</span>
+    <span class="k">if</span> <span class="p">(</span>
+            <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">network</span><span class="p">)</span> <span class="o">==</span> <span class="n">NetworkX_Undir</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">network</span><span class="p">)</span> <span class="o">==</span> <span class="n">NetworkX_Dir</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">network</span><span class="p">)</span> <span class="o">==</span> <span class="n">NetworkX_Multi</span><span class="p">)</span>
+        <span class="p">):</span>
+             <span class="n">network</span> <span class="o">=</span> <span class="n">Graph</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+    
+    <span class="c1"># Generating adjacency matrix</span>
+    <span class="n">adjMat</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">get_adjacency</span><span class="p">()</span>
+    <span class="n">adjMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">adjMat</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    
+    <span class="c1"># Creating R network object from adjacency matrix</span>
+    <span class="n">input_network</span> <span class="o">=</span> <span class="n">networkr</span><span class="o">.</span><span class="n">network</span><span class="p">(</span><span class="n">adjMat</span><span class="p">)</span>
+    
+    <span class="c1"># Creating formula string for R code</span>
+    <span class="n">formula_str</span> <span class="o">=</span> <span class="s1">&#39;input_network ~&#39;</span>
+    
+    <span class="c1"># Adding terms to formula</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">term</span> <span class="o">=</span> <span class="s1">&#39;+ &#39;</span> <span class="o">+</span> <span class="n">term</span>
+        <span class="n">formula_str</span> <span class="o">=</span> <span class="n">formula_str</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">term</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+    
+    <span class="c1"># Setting up R environment using formula string</span>
+    <span class="n">formula</span> <span class="o">=</span> <span class="n">Formula</span><span class="p">(</span><span class="n">formula_str</span><span class="p">)</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">formula</span><span class="o">.</span><span class="n">environment</span>
+    <span class="n">env</span><span class="p">[</span><span class="s1">&#39;input_network&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_network</span>
+    
+    <span class="c1"># Creating ERGM in R</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">ergm</span><span class="o">.</span><span class="n">ergm</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">output</span></div>
+
+
+
+<div class="viewcode-block" id="fit_ergm"><a class="viewcode-back" href="../../../../ida.modelling.ergm.html#ida.modelling.ergm.ergm_functions.fit_ergm">[docs]</a><span class="k">def</span> <span class="nf">fit_ergm</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">terms</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;edges&#39;</span><span class="p">],</span> <span class="n">print_results</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fits an Expontential Random Graph Model using selected terms as modelling parameters.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    network : str, igraph.Graph, NetworkX, or CaseNetwork</span>
+<span class="sd">        network object to fit ERGM to.</span>
+<span class="sd">    terms : str or list</span>
+<span class="sd">        name or list of name of terms for formula.</span>
+<span class="sd">    print_results : bool</span>
+<span class="sd">        whether to print results to the console. Defaults to True.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : dict</span>
+<span class="sd">        dictionary of ERGM results.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Creating ERGM</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">create_ergm</span><span class="p">(</span><span class="n">network</span> <span class="o">=</span> <span class="n">network</span><span class="p">,</span> <span class="n">terms</span> <span class="o">=</span> <span class="n">terms</span><span class="p">,</span> <span class="n">from_case</span> <span class="o">=</span> <span class="n">from_case</span><span class="p">,</span> <span class="n">case</span> <span class="o">=</span> <span class="n">case</span><span class="p">)</span>
+    
+    <span class="c1"># Getting summary data</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+    <span class="c1"># Converting to dictionaries for parsing</span>
+    <span class="n">output_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">names</span><span class="p">,</span> <span class="n">output</span><span class="p">))</span>
+    <span class="n">summary_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">summary</span><span class="o">.</span><span class="n">names</span><span class="p">,</span> <span class="n">summary</span><span class="p">))</span>
+    
+    <span class="c1"># Parsing output and summary</span>
+    <span class="n">formula_used</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;formula&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">model_ref</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">ergm_version</span> <span class="o">=</span> <span class="n">text_splitter</span><span class="p">(</span>
+                                <span class="nb">str</span><span class="p">(</span><span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;ergm_version&#39;</span><span class="p">]),</span> 
+                                <span class="n">parse_by</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> 
+                                <span class="n">replace</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;‘&quot;</span><span class="p">,</span> <span class="s2">&quot;’&quot;</span><span class="p">,</span> <span class="s1">&#39;[1]&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">]</span>
+                                <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="n">values</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s1">&#39;R ERGM Library&#39;</span><span class="p">,</span> 
+                <span class="n">ergm_version</span><span class="p">,</span> 
+                <span class="n">formula_used</span><span class="p">,</span> 
+                <span class="n">model_ref</span><span class="p">,</span> 
+                <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;estimate&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> 
+                <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;MCMCtheta&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">]</span>
+    
+    <span class="c1"># Creating dataframe for output data</span>
+    <span class="n">about_model</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                                <span class="n">values</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="p">[</span>
+                                                <span class="s1">&#39;Package used&#39;</span><span class="p">,</span> 
+                                                <span class="s1">&#39;Version&#39;</span><span class="p">,</span> 
+                                                <span class="s1">&#39;Formula&#39;</span><span class="p">,</span> 
+                                                <span class="s1">&#39;Model Reference&#39;</span><span class="p">,</span> 
+                                                <span class="s1">&#39;Estimation Method&#39;</span><span class="p">,</span> 
+                                                <span class="s1">&#39;MCMC Theta&#39;</span>
+                                                <span class="p">],</span> 
+                                <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span>
+                                <span class="p">)</span>
+    
+    <span class="c1"># Cleaning output data</span>
+    <span class="n">network_attr</span> <span class="o">=</span> <span class="n">text_splitter</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;network&#39;</span><span class="p">]),</span> <span class="n">parse_by</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving model network attributes and assigning to dictionary</span>
+    <span class="n">network_attr_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">network_attr_dict</span><span class="p">[</span><span class="n">network_attr</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">network_attr</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">network_attr_dict</span><span class="p">[</span><span class="n">network_attr</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]]</span> <span class="o">=</span> <span class="n">network_attr</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">network_attr_dict</span><span class="p">[</span><span class="n">network_attr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Retrieving model covariance matrices</span>
+    <span class="n">cov_mats_list</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">summary_dict</span><span class="p">[</span><span class="s1">&#39;asycov&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> 
+                    <span class="n">summary_dict</span><span class="p">[</span><span class="s1">&#39;asyse&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="p">]</span>
+    
+    <span class="c1"># Creating dataframe for model covariance matrices</span>
+    <span class="n">cov_mats</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                            <span class="n">cov_mats_list</span><span class="p">,</span> 
+                            <span class="n">index</span> <span class="o">=</span> <span class="p">[</span>
+                                        <span class="s1">&#39;Asymptotic Covariance Matrix&#39;</span><span class="p">,</span> 
+                                        <span class="s1">&#39;Asymptotic Standard Error Matrix&#39;</span>
+                                    <span class="p">],</span> 
+                            <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span>
+                            <span class="p">)</span>
+    
+    <span class="c1"># Creating dataframe for model coefficients</span>
+    <span class="n">coefs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                        <span class="n">summary_dict</span><span class="p">[</span><span class="s1">&#39;coefficients&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> 
+                        <span class="n">index</span> <span class="o">=</span> <span class="p">[</span>
+                                <span class="s1">&#39;Estimate&#39;</span><span class="p">,</span> 
+                                <span class="s1">&#39;Std. Error&#39;</span><span class="p">,</span> 
+                                <span class="s1">&#39;MCMC %&#39;</span><span class="p">,</span> 
+                                <span class="s1">&#39;z value&#39;</span><span class="p">,</span> 
+                                <span class="s1">&#39;Pr (&gt;|z|)&#39;</span>
+                                <span class="p">],</span> 
+                        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;edges&#39;</span><span class="p">]</span>
+                        <span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+    <span class="c1"># Creating dataframe for model deviance</span>
+    <span class="n">deviance</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                            <span class="n">summary_dict</span><span class="p">[</span><span class="s1">&#39;devtable&#39;</span><span class="p">],</span> 
+                            <span class="n">index</span> <span class="o">=</span> <span class="p">[</span>
+                                    <span class="s1">&#39;Null Deviance&#39;</span><span class="p">,</span> 
+                                    <span class="s1">&#39;Residual Deviance&#39;</span>
+                                    <span class="p">],</span> 
+                            <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span>
+                                        <span class="s1">&#39;Value&#39;</span><span class="p">,</span> 
+                                        <span class="s1">&#39;Degrees of Freedom&#39;</span>
+                                        <span class="p">]</span>
+                            <span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    
+    <span class="c1"># Creating array for model likelihood ratios</span>
+    <span class="n">lr_array</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">summary_dict</span><span class="p">[</span><span class="s1">&#39;mle.lik&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> 
+                <span class="n">summary_dict</span><span class="p">[</span><span class="s1">&#39;null.lik&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">]</span>
+    <span class="n">lrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">lr_array</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MLE&#39;</span><span class="p">,</span> <span class="s1">&#39;NULL&#39;</span><span class="p">],</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LE&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    
+    <span class="n">coefs_df</span> <span class="o">=</span> <span class="n">coefs</span><span class="p">[</span><span class="s1">&#39;Estimate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+
+    <span class="n">coefs_df</span> <span class="o">=</span> <span class="n">coefs_df</span><span class="p">[</span><span class="s1">&#39;Estimate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">inv_logit</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coefs_df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">coefs_df</span> <span class="o">=</span> <span class="n">coefs_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Estimate&quot;</span><span class="p">:</span> <span class="s2">&quot;Probability&quot;</span><span class="p">})</span>
+    
+    <span class="c1"># Bundling results into a dictionary</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;about_model&#39;</span><span class="p">:</span> <span class="n">about_model</span><span class="p">,</span>
+                <span class="s1">&#39;network_attributes&#39;</span><span class="p">:</span> <span class="n">network_attr_dict</span><span class="p">,</span>
+                <span class="s1">&#39;covariance_matrices&#39;</span><span class="p">:</span> <span class="n">cov_mats</span><span class="p">,</span>
+                <span class="s1">&#39;coefficients&#39;</span><span class="p">:</span> <span class="n">coefs</span><span class="p">,</span>
+                <span class="s1">&#39;probabilities&#39;</span><span class="p">:</span> <span class="n">coefs_df</span><span class="p">,</span>
+                <span class="s1">&#39;deviance&#39;</span><span class="p">:</span> <span class="n">deviance</span><span class="p">,</span>
+                <span class="s1">&#39;likelihood_ratios&#39;</span><span class="p">:</span> <span class="n">lrs</span>
+              <span class="p">}</span>
+    
+    <span class="k">if</span> <span class="n">print_results</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        
+        <span class="c1"># Printing results</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> - - - - - - - - - - - - - - - - - - - - - - - - - - - -&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">+</span><span class="n">key</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;network_attributes&#39;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;Network attributes:&#39;</span><span class="p">]:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;coefficients&#39;</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&#39;</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> - - - - - - - - - - - - - - - - - - - - - - - - - - - -&#39;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">results</span></div>
+
+<div class="viewcode-block" id="edge_probabilities"><a class="viewcode-back" href="../../../../ida.modelling.ergm.html#ida.modelling.ergm.ergm_functions.edge_probabilities">[docs]</a><span class="k">def</span> <span class="nf">edge_probabilities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;edges&#39;</span><span class="p">]):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates edge probabilities for a fitted Expontential Random Graph Model using selected terms as modelling parameters.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    terms : str or list</span>
+<span class="sd">        name or list of name of terms for formula.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">return</span> <span class="n">ergm_edge_probabilities</span><span class="p">(</span><span class="n">network</span> <span class="o">=</span> <span class="bp">self</span><span class="p">,</span> <span class="n">terms</span> <span class="o">=</span> <span class="s1">&#39;edges&#39;</span><span class="p">,</span> <span class="n">from_case</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">case</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="casenet_edge_probabilities"><a class="viewcode-back" href="../../../../ida.modelling.ergm.html#ida.modelling.ergm.ergm_functions.casenet_edge_probabilities">[docs]</a><span class="k">def</span> <span class="nf">casenet_edge_probabilities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">network</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">terms</span> <span class="o">=</span> <span class="s1">&#39;edges&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates edge probabilities for a fitted Expontential Random Graph Model using selected terms as modelling parameters.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    network : str</span>
+<span class="sd">        name of network object from Case to fit ERGM to.</span>
+<span class="sd">    terms : str or list</span>
+<span class="sd">        name or list of name of terms for formula.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting network name from user input if none provided</span>
+    <span class="k">if</span> <span class="n">network</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">network</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Network name: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving network object</span>
+    <span class="n">network</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_network</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+    
+    <span class="c1"># calculating edge probabilities</span>
+    <span class="k">return</span> <span class="n">network</span><span class="o">.</span><span class="n">edge_probabilities</span><span class="p">(</span><span class="n">terms</span> <span class="o">=</span> <span class="n">terms</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="case_edge_probabilities"><a class="viewcode-back" href="../../../../ida.modelling.ergm.html#ida.modelling.ergm.ergm_functions.case_edge_probabilities">[docs]</a><span class="k">def</span> <span class="nf">case_edge_probabilities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">network</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">terms</span> <span class="o">=</span> <span class="s1">&#39;edges&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates edge probabilities for a fitted Expontential Random Graph Model using selected terms as modelling parameters.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    network : str</span>
+<span class="sd">        name of network object from Case to fit ERGM to.</span>
+<span class="sd">    terms : str or list</span>
+<span class="sd">        name or list of name of terms for formula.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">networks</span><span class="o">.</span><span class="n">edge_probabilities</span><span class="p">(</span><span class="n">network</span> <span class="o">=</span> <span class="n">network</span><span class="p">,</span> <span class="n">terms</span> <span class="o">=</span> <span class="n">terms</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ergm_edge_probabilities"><a class="viewcode-back" href="../../../../ida.modelling.ergm.html#ida.modelling.ergm.ergm_functions.ergm_edge_probabilities">[docs]</a><span class="k">def</span> <span class="nf">ergm_edge_probabilities</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;edges&#39;</span><span class="p">]):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates edge probabilities for a fitted Expontential Random Graph Model using selected terms as modelling parameters.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    network : igraph.Graph, NetworkX, or CaseNetwork</span>
+<span class="sd">        network object to fit ERGM to.</span>
+<span class="sd">    terms : str or list</span>
+<span class="sd">        name or list of name of terms for formula.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : pandas.DataFrame</span>
+<span class="sd">        dataframe of edge probabilities.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Checking type of terms; if string, wrapping as a list</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">terms</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">terms</span><span class="p">]</span>
+    
+    <span class="c1"># Checking type of network; if NetworkX, converting to igraph.Graph</span>
+    <span class="k">if</span> <span class="p">(</span>
+            <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">network</span><span class="p">)</span> <span class="o">==</span> <span class="n">NetworkX_Undir</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">network</span><span class="p">)</span> <span class="o">==</span> <span class="n">NetworkX_Dir</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">network</span><span class="p">)</span> <span class="o">==</span> <span class="n">NetworkX_Multi</span><span class="p">)</span>
+        <span class="p">):</span>
+             <span class="n">network</span> <span class="o">=</span> <span class="n">Graph</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+
+    <span class="c1"># Generating adjacency matrix</span>
+    <span class="n">adjMat</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">get_adjacency</span><span class="p">()</span>
+    <span class="n">adjMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">adjMat</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    
+    <span class="c1"># Creating R network object from adjacency matrix</span>
+    <span class="n">input_network</span> <span class="o">=</span> <span class="n">networkr</span><span class="o">.</span><span class="n">network</span><span class="p">(</span><span class="n">adjMat</span><span class="p">)</span>
+
+    <span class="c1"># Creating formula string to input into R</span>
+    <span class="n">formula_str</span> <span class="o">=</span> <span class="s1">&#39;input_network ~&#39;</span>
+    
+    <span class="c1"># Adding terms to formula</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">term</span> <span class="o">=</span> <span class="s1">&#39;+ &#39;</span> <span class="o">+</span> <span class="n">term</span>
+        <span class="n">formula_str</span> <span class="o">=</span> <span class="n">formula_str</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">term</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+    
+    <span class="c1"># Setting up R environment using formula string</span>
+    <span class="n">formula</span> <span class="o">=</span> <span class="n">Formula</span><span class="p">(</span><span class="n">formula_str</span><span class="p">)</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">formula</span><span class="o">.</span><span class="n">environment</span>
+    <span class="n">env</span><span class="p">[</span><span class="s1">&#39;input_network&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_network</span>
+    
+    <span class="c1"># Fitting ERGM</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">ergm</span><span class="o">.</span><span class="n">ergm</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
+    
+    <span class="c1"># Retrieving results</span>
+    <span class="n">output_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">names</span><span class="p">,</span> <span class="n">output</span><span class="p">))</span>
+    
+    <span class="c1"># Retrieving edge probabilities values</span>
+    <span class="n">theta_val</span> <span class="o">=</span> <span class="n">output_dict</span><span class="p">[</span><span class="s1">&#39;MCMCtheta&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">probs</span> <span class="o">=</span> <span class="n">ergm</span><span class="o">.</span><span class="n">predict_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">theta</span> <span class="o">=</span> <span class="n">theta_val</span><span class="p">)</span>
+    
+    <span class="c1"># Converting to dataframe</span>
+    <span class="k">with</span> <span class="p">(</span><span class="n">robjects</span><span class="o">.</span><span class="n">default_converter</span> <span class="o">+</span> <span class="n">pandas2ri</span><span class="o">.</span><span class="n">converter</span><span class="p">)</span><span class="o">.</span><span class="n">context</span><span class="p">():</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">robjects</span><span class="o">.</span><span class="n">conversion</span><span class="o">.</span><span class="n">get_conversion</span><span class="p">()</span><span class="o">.</span><span class="n">rpy2py</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+    
+    <span class="c1"># Formatting dataframe</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;tail&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;tail&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;head&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;head&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;p&quot;</span><span class="p">:</span> <span class="s2">&quot;P(edge)&quot;</span><span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">df</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

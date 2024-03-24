@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.socmed.sherlock.sherlock &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">ida</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ida.socmed.sherlock.sherlock</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ida.socmed.sherlock.sherlock</h1><div class="highlight"><pre>
+<span></span><span class="ch">#! /usr/bin/env python3</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Sherlock: Find Usernames Across Social Networks Module</span>
+
+<span class="sd">This module contains the main logic to search for usernames at social</span>
+<span class="sd">networks.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">platform</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">argparse</span> <span class="kn">import</span> <span class="n">ArgumentParser</span><span class="p">,</span> <span class="n">RawDescriptionHelpFormatter</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">monotonic</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="kn">from</span> <span class="nn">requests_futures.sessions</span> <span class="kn">import</span> <span class="n">FuturesSession</span>
+<span class="kn">from</span> <span class="nn">torrequest</span> <span class="kn">import</span> <span class="n">TorRequest</span>
+<span class="kn">from</span> <span class="nn">.result</span> <span class="kn">import</span> <span class="n">QueryStatus</span>
+<span class="kn">from</span> <span class="nn">.result</span> <span class="kn">import</span> <span class="n">QueryResult</span>
+<span class="kn">from</span> <span class="nn">.notify</span> <span class="kn">import</span> <span class="n">QueryNotifyPrint</span>
+<span class="kn">from</span> <span class="nn">.sites</span> <span class="kn">import</span> <span class="n">SitesInformation</span>
+<span class="kn">from</span> <span class="nn">colorama</span> <span class="kn">import</span> <span class="n">init</span>
+<span class="kn">from</span> <span class="nn">argparse</span> <span class="kn">import</span> <span class="n">ArgumentTypeError</span>
+
+<span class="n">module_name</span> <span class="o">=</span> <span class="s2">&quot;Sherlock: Find Usernames Across Social Networks&quot;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;0.14.3&quot;</span>
+
+
+<div class="viewcode-block" id="SherlockFuturesSession"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.sherlock.SherlockFuturesSession">[docs]</a><span class="k">class</span> <span class="nc">SherlockFuturesSession</span><span class="p">(</span><span class="n">FuturesSession</span><span class="p">):</span>
+    
+<div class="viewcode-block" id="SherlockFuturesSession.request"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.sherlock.SherlockFuturesSession.request">[docs]</a>    <span class="k">def</span> <span class="nf">request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">hooks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Request URL.</span>
+
+<span class="sd">        This extends the FuturesSession request method to calculate a response</span>
+<span class="sd">        time metric to each request.</span>
+
+<span class="sd">        It is taken (almost) directly from the following Stack Overflow answer:</span>
+<span class="sd">        https://github.com/ross/requests-futures#working-in-the-background</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+<span class="sd">        method                 -- String containing method desired for request.</span>
+<span class="sd">        url                    -- String containing URL for request.</span>
+<span class="sd">        hooks                  -- Dictionary containing hooks to execute after</span>
+<span class="sd">                                  request finishes.</span>
+<span class="sd">        args                   -- Arguments.</span>
+<span class="sd">        kwargs                 -- Keyword arguments.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        Request object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Record the start time for the request.</span>
+        <span class="k">if</span> <span class="n">hooks</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">hooks</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">monotonic</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">response_time</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Response Time Hook.</span>
+
+<span class="sd">            Keyword Arguments:</span>
+<span class="sd">            resp                   -- Response object.</span>
+<span class="sd">            args                   -- Arguments.</span>
+<span class="sd">            kwargs                 -- Keyword arguments.</span>
+
+<span class="sd">            Return Value:</span>
+<span class="sd">            Nothing.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">resp</span><span class="o">.</span><span class="n">elapsed</span> <span class="o">=</span> <span class="n">monotonic</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+
+            <span class="k">return</span>
+
+        <span class="c1"># Install hook to execute when response completes.</span>
+        <span class="c1"># Make sure that the time measurement hook is first, so we will not</span>
+        <span class="c1"># track any later hook&#39;s execution time.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hooks</span><span class="p">[</span><span class="s2">&quot;response&quot;</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">hooks</span><span class="p">[</span><span class="s2">&quot;response&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">response_time</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hooks</span><span class="p">[</span><span class="s2">&quot;response&quot;</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="c1"># Convert tuple to list and insert time measurement hook first.</span>
+                <span class="n">hooks</span><span class="p">[</span><span class="s2">&quot;response&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">hooks</span><span class="p">[</span><span class="s2">&quot;response&quot;</span><span class="p">])</span>
+                <span class="n">hooks</span><span class="p">[</span><span class="s2">&quot;response&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">response_time</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Must have previously contained a single hook function,</span>
+                <span class="c1"># so convert to list.</span>
+                <span class="n">hooks</span><span class="p">[</span><span class="s2">&quot;response&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">response_time</span><span class="p">,</span> <span class="n">hooks</span><span class="p">[</span><span class="s2">&quot;response&quot;</span><span class="p">]]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># No response hook was already defined, so install it ourselves.</span>
+            <span class="n">hooks</span><span class="p">[</span><span class="s2">&quot;response&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">response_time</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">SherlockFuturesSession</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+            <span class="n">method</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">hooks</span><span class="o">=</span><span class="n">hooks</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="get_response"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.sherlock.get_response">[docs]</a><span class="k">def</span> <span class="nf">get_response</span><span class="p">(</span><span class="n">request_future</span><span class="p">,</span> <span class="n">error_type</span><span class="p">,</span> <span class="n">social_network</span><span class="p">):</span>
+    <span class="c1"># Default for Response object if some failure occurs.</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">error_context</span> <span class="o">=</span> <span class="s2">&quot;General Unknown Error&quot;</span>
+    <span class="n">exception_text</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">request_future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">:</span>
+            <span class="c1"># Status code exists in response object</span>
+            <span class="n">error_context</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">HTTPError</span> <span class="k">as</span> <span class="n">errh</span><span class="p">:</span>
+        <span class="n">error_context</span> <span class="o">=</span> <span class="s2">&quot;HTTP Error&quot;</span>
+        <span class="n">exception_text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">errh</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ProxyError</span> <span class="k">as</span> <span class="n">errp</span><span class="p">:</span>
+        <span class="n">error_context</span> <span class="o">=</span> <span class="s2">&quot;Proxy Error&quot;</span>
+        <span class="n">exception_text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">errp</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">errc</span><span class="p">:</span>
+        <span class="n">error_context</span> <span class="o">=</span> <span class="s2">&quot;Error Connecting&quot;</span>
+        <span class="n">exception_text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">errc</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">Timeout</span> <span class="k">as</span> <span class="n">errt</span><span class="p">:</span>
+        <span class="n">error_context</span> <span class="o">=</span> <span class="s2">&quot;Timeout Error&quot;</span>
+        <span class="n">exception_text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">errt</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="n">error_context</span> <span class="o">=</span> <span class="s2">&quot;Unknown Error&quot;</span>
+        <span class="n">exception_text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">response</span><span class="p">,</span> <span class="n">error_context</span><span class="p">,</span> <span class="n">exception_text</span></div>
+
+
+<div class="viewcode-block" id="interpolate_string"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.sherlock.interpolate_string">[docs]</a><span class="k">def</span> <span class="nf">interpolate_string</span><span class="p">(</span><span class="n">input_object</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_object</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">input_object</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">username</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_object</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">interpolate_string</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">username</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">input_object</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_object</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">interpolate_string</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">username</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">input_object</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">input_object</span></div>
+
+
+<div class="viewcode-block" id="check_for_parameter"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.sherlock.check_for_parameter">[docs]</a><span class="k">def</span> <span class="nf">check_for_parameter</span><span class="p">(</span><span class="n">username</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;checks if {?} exists in the username</span>
+<span class="sd">    if exist it means that sherlock is looking for more multiple username&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s2">&quot;{?}&quot;</span> <span class="ow">in</span> <span class="n">username</span></div>
+
+
+<span class="n">checksymbols</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">checksymbols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="multiple_usernames"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.sherlock.multiple_usernames">[docs]</a><span class="k">def</span> <span class="nf">multiple_usernames</span><span class="p">(</span><span class="n">username</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;replace the parameter with with symbols and return a list of usernames&quot;&quot;&quot;</span>
+    <span class="n">allUsernames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">checksymbols</span><span class="p">:</span>
+        <span class="n">allUsernames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">username</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{?}&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">allUsernames</span></div>
+
+
+<div class="viewcode-block" id="sherlock"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.sherlock.sherlock">[docs]</a><span class="k">def</span> <span class="nf">sherlock</span><span class="p">(</span>
+    <span class="n">username</span><span class="p">,</span>
+    <span class="n">site_data</span><span class="p">,</span>
+    <span class="n">query_notify</span><span class="p">,</span>
+    <span class="n">tor</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">unique_tor</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">proxy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run Sherlock Analysis.</span>
+
+<span class="sd">    Checks for existence of username on various social media sites.</span>
+
+<span class="sd">    Keyword Arguments:</span>
+<span class="sd">    username               -- String indicating username that report</span>
+<span class="sd">                              should be created against.</span>
+<span class="sd">    site_data              -- Dictionary containing all of the site data.</span>
+<span class="sd">    query_notify           -- Object with base type of QueryNotify().</span>
+<span class="sd">                              This will be used to notify the caller about</span>
+<span class="sd">                              query results.</span>
+<span class="sd">    tor                    -- Boolean indicating whether to use a tor circuit for the requests.</span>
+<span class="sd">    unique_tor             -- Boolean indicating whether to use a new tor circuit for each request.</span>
+<span class="sd">    proxy                  -- String indicating the proxy URL</span>
+<span class="sd">    timeout                -- Time in seconds to wait before timing out request.</span>
+<span class="sd">                              Default is 60 seconds.</span>
+
+<span class="sd">    Return Value:</span>
+<span class="sd">    Dictionary containing results from report. Key of dictionary is the name</span>
+<span class="sd">    of the social network site, and the value is another dictionary with</span>
+<span class="sd">    the following keys:</span>
+<span class="sd">        url_main:      URL of main site.</span>
+<span class="sd">        url_user:      URL of user on site (if account exists).</span>
+<span class="sd">        status:        QueryResult() object indicating results of test for</span>
+<span class="sd">                       account existence.</span>
+<span class="sd">        http_status:   HTTP status code of query which checked for existence on</span>
+<span class="sd">                       site.</span>
+<span class="sd">        response_text: Text that came back from request.  May be None if</span>
+<span class="sd">                       there was an HTTP error when checking for existence.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Notify caller that we are starting the query.</span>
+    <span class="n">query_notify</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+    <span class="c1"># Create session based on request methodology</span>
+    <span class="k">if</span> <span class="n">tor</span> <span class="ow">or</span> <span class="n">unique_tor</span><span class="p">:</span>
+        <span class="c1"># Requests using Tor obfuscation</span>
+        <span class="n">underlying_request</span> <span class="o">=</span> <span class="n">TorRequest</span><span class="p">()</span>
+        <span class="n">underlying_session</span> <span class="o">=</span> <span class="n">underlying_request</span><span class="o">.</span><span class="n">session</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Normal requests</span>
+        <span class="n">underlying_session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">session</span><span class="p">()</span>
+        <span class="n">underlying_request</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Request</span><span class="p">()</span>
+
+    <span class="c1"># Limit number of workers to 20.</span>
+    <span class="c1"># This is probably vastly overkill.</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">site_data</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">20</span><span class="p">:</span>
+        <span class="n">max_workers</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">max_workers</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">site_data</span><span class="p">)</span>
+
+    <span class="c1"># Create multi-threaded session for all requests.</span>
+    <span class="n">session</span> <span class="o">=</span> <span class="n">SherlockFuturesSession</span><span class="p">(</span>
+        <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="n">underlying_session</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Results from analysis of all sites</span>
+    <span class="n">results_total</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># First create futures for all requests. This allows for the requests to run in parallel</span>
+    <span class="k">for</span> <span class="n">social_network</span><span class="p">,</span> <span class="n">net_info</span> <span class="ow">in</span> <span class="n">site_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># Results from analysis of this specific site</span>
+        <span class="n">results_site</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;url_main&quot;</span><span class="p">:</span> <span class="n">net_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;urlMain&quot;</span><span class="p">)}</span>
+
+        <span class="c1"># Record URL of main site</span>
+
+        <span class="c1"># A user agent is needed because some sites don&#39;t return the correct</span>
+        <span class="c1"># information since they think that we are bots (Which we actually are...)</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0) Gecko/20100101 Firefox/55.0&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="s2">&quot;headers&quot;</span> <span class="ow">in</span> <span class="n">net_info</span><span class="p">:</span>
+            <span class="c1"># Override/append any extra headers required by a given site.</span>
+            <span class="n">headers</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">net_info</span><span class="p">[</span><span class="s2">&quot;headers&quot;</span><span class="p">])</span>
+
+        <span class="c1"># URL of user on site (if it exists)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">interpolate_string</span><span class="p">(</span><span class="n">net_info</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">],</span> <span class="n">username</span><span class="p">)</span>
+
+        <span class="c1"># Don&#39;t make request if username is invalid for the site</span>
+        <span class="n">regex_check</span> <span class="o">=</span> <span class="n">net_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;regexCheck&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">regex_check</span> <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">regex_check</span><span class="p">,</span> <span class="n">username</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># No need to do the check at the site: this username is not allowed.</span>
+            <span class="n">results_site</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">QueryResult</span><span class="p">(</span>
+                <span class="n">username</span><span class="p">,</span> <span class="n">social_network</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">ILLEGAL</span>
+            <span class="p">)</span>
+            <span class="n">results_site</span><span class="p">[</span><span class="s2">&quot;url_user&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="n">results_site</span><span class="p">[</span><span class="s2">&quot;http_status&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="n">results_site</span><span class="p">[</span><span class="s2">&quot;response_text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="n">query_notify</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">results_site</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># URL of user on site (if it exists)</span>
+            <span class="n">results_site</span><span class="p">[</span><span class="s2">&quot;url_user&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">url</span>
+            <span class="n">url_probe</span> <span class="o">=</span> <span class="n">net_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;urlProbe&quot;</span><span class="p">)</span>
+            <span class="n">request_method</span> <span class="o">=</span> <span class="n">net_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;request_method&quot;</span><span class="p">)</span>
+            <span class="n">request_payload</span> <span class="o">=</span> <span class="n">net_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;request_payload&quot;</span><span class="p">)</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="n">request_method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">request_method</span> <span class="o">==</span> <span class="s2">&quot;GET&quot;</span><span class="p">:</span>
+                    <span class="n">request</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span>
+                <span class="k">elif</span> <span class="n">request_method</span> <span class="o">==</span> <span class="s2">&quot;HEAD&quot;</span><span class="p">:</span>
+                    <span class="n">request</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">head</span>
+                <span class="k">elif</span> <span class="n">request_method</span> <span class="o">==</span> <span class="s2">&quot;POST&quot;</span><span class="p">:</span>
+                    <span class="n">request</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">post</span>
+                <span class="k">elif</span> <span class="n">request_method</span> <span class="o">==</span> <span class="s2">&quot;PUT&quot;</span><span class="p">:</span>
+                    <span class="n">request</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">put</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported request_method for </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">request_payload</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">request_payload</span> <span class="o">=</span> <span class="n">interpolate_string</span><span class="p">(</span><span class="n">request_payload</span><span class="p">,</span> <span class="n">username</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">url_probe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Probe URL is normal one seen by people out on the web.</span>
+                <span class="n">url_probe</span> <span class="o">=</span> <span class="n">url</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># There is a special URL for probing existence separate</span>
+                <span class="c1"># from where the user profile normally can be found.</span>
+                <span class="n">url_probe</span> <span class="o">=</span> <span class="n">interpolate_string</span><span class="p">(</span><span class="n">url_probe</span><span class="p">,</span> <span class="n">username</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">request</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">net_info</span><span class="p">[</span><span class="s2">&quot;errorType&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;status_code&quot;</span><span class="p">:</span>
+                    <span class="c1"># In most cases when we are detecting by status code,</span>
+                    <span class="c1"># it is not necessary to get the entire body:  we can</span>
+                    <span class="c1"># detect fine with just the HEAD response.</span>
+                    <span class="n">request</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">head</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Either this detect method needs the content associated</span>
+                    <span class="c1"># with the GET response, or this specific website will</span>
+                    <span class="c1"># not respond properly unless we request the whole page.</span>
+                    <span class="n">request</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span>
+
+            <span class="k">if</span> <span class="n">net_info</span><span class="p">[</span><span class="s2">&quot;errorType&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;response_url&quot;</span><span class="p">:</span>
+                <span class="c1"># Site forwards request to a different URL if username not</span>
+                <span class="c1"># found.  Disallow the redirect so we can capture the</span>
+                <span class="c1"># http status from the original URL request.</span>
+                <span class="n">allow_redirects</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Allow whatever redirect that the site wants to do.</span>
+                <span class="c1"># The final result of the request will be what is available.</span>
+                <span class="n">allow_redirects</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="c1"># This future starts running the request in a new thread, doesn&#39;t block the main thread</span>
+            <span class="k">if</span> <span class="n">proxy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">proxies</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;http&quot;</span><span class="p">:</span> <span class="n">proxy</span><span class="p">,</span> <span class="s2">&quot;https&quot;</span><span class="p">:</span> <span class="n">proxy</span><span class="p">}</span>
+                <span class="n">future</span> <span class="o">=</span> <span class="n">request</span><span class="p">(</span>
+                    <span class="n">url</span><span class="o">=</span><span class="n">url_probe</span><span class="p">,</span>
+                    <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+                    <span class="n">proxies</span><span class="o">=</span><span class="n">proxies</span><span class="p">,</span>
+                    <span class="n">allow_redirects</span><span class="o">=</span><span class="n">allow_redirects</span><span class="p">,</span>
+                    <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span>
+                    <span class="n">json</span><span class="o">=</span><span class="n">request_payload</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">future</span> <span class="o">=</span> <span class="n">request</span><span class="p">(</span>
+                    <span class="n">url</span><span class="o">=</span><span class="n">url_probe</span><span class="p">,</span>
+                    <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+                    <span class="n">allow_redirects</span><span class="o">=</span><span class="n">allow_redirects</span><span class="p">,</span>
+                    <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span>
+                    <span class="n">json</span><span class="o">=</span><span class="n">request_payload</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Store future in data for access later</span>
+            <span class="n">net_info</span><span class="p">[</span><span class="s2">&quot;request_future&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">future</span>
+
+            <span class="c1"># Reset identify for tor (if needed)</span>
+            <span class="k">if</span> <span class="n">unique_tor</span><span class="p">:</span>
+                <span class="n">underlying_request</span><span class="o">.</span><span class="n">reset_identity</span><span class="p">()</span>
+
+        <span class="c1"># Add this site&#39;s results into final dictionary with all the other results.</span>
+        <span class="n">results_total</span><span class="p">[</span><span class="n">social_network</span><span class="p">]</span> <span class="o">=</span> <span class="n">results_site</span>
+
+    <span class="c1"># Open the file containing account links</span>
+    <span class="c1"># Core logic: If tor requests, make them here. If multi-threaded requests, wait for responses</span>
+    <span class="k">for</span> <span class="n">social_network</span><span class="p">,</span> <span class="n">net_info</span> <span class="ow">in</span> <span class="n">site_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># Retrieve results again</span>
+        <span class="n">results_site</span> <span class="o">=</span> <span class="n">results_total</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">social_network</span><span class="p">)</span>
+
+        <span class="c1"># Retrieve other site information again</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">results_site</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;url_user&quot;</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">results_site</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">status</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># We have already determined the user doesn&#39;t exist here</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Get the expected error type</span>
+        <span class="n">error_type</span> <span class="o">=</span> <span class="n">net_info</span><span class="p">[</span><span class="s2">&quot;errorType&quot;</span><span class="p">]</span>
+        <span class="n">error_code</span> <span class="o">=</span> <span class="n">net_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;errorCode&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Retrieve future and ensure it has finished</span>
+        <span class="n">future</span> <span class="o">=</span> <span class="n">net_info</span><span class="p">[</span><span class="s2">&quot;request_future&quot;</span><span class="p">]</span>
+        <span class="n">r</span><span class="p">,</span> <span class="n">error_text</span><span class="p">,</span> <span class="n">exception_text</span> <span class="o">=</span> <span class="n">get_response</span><span class="p">(</span>
+            <span class="n">request_future</span><span class="o">=</span><span class="n">future</span><span class="p">,</span> <span class="n">error_type</span><span class="o">=</span><span class="n">error_type</span><span class="p">,</span> <span class="n">social_network</span><span class="o">=</span><span class="n">social_network</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Get response time for response of our request.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response_time</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">elapsed</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">response_time</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Attempt to get request information</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">http_status</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">http_status</span> <span class="o">=</span> <span class="s2">&quot;?&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response_text</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">encoding</span> <span class="ow">or</span> <span class="s2">&quot;UTF-8&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">response_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="n">query_status</span> <span class="o">=</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">UNKNOWN</span>
+        <span class="n">error_context</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">error_text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">error_context</span> <span class="o">=</span> <span class="n">error_text</span>
+
+        <span class="k">elif</span> <span class="n">error_type</span> <span class="o">==</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span>
+            <span class="c1"># error_flag True denotes no error found in the HTML</span>
+            <span class="c1"># error_flag False denotes error found in the HTML</span>
+            <span class="n">error_flag</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">errors</span> <span class="o">=</span> <span class="n">net_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;errorMsg&quot;</span><span class="p">)</span>
+            <span class="c1"># errors will hold the error message</span>
+            <span class="c1"># it can be string or list</span>
+            <span class="c1"># by isinstance method we can detect that</span>
+            <span class="c1"># and handle the case for strings as normal procedure</span>
+            <span class="c1"># and if its list we can iterate the errors</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="c1"># Checks if the error message is in the HTML</span>
+                <span class="c1"># if error is present we will set flag to False</span>
+                <span class="k">if</span> <span class="n">errors</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
+                    <span class="n">error_flag</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># If it&#39;s list, it will iterate all the error message</span>
+                <span class="k">for</span> <span class="n">error</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">error</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
+                        <span class="n">error_flag</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="k">break</span>
+            <span class="k">if</span> <span class="n">error_flag</span><span class="p">:</span>
+                <span class="n">query_status</span> <span class="o">=</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">CLAIMED</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">query_status</span> <span class="o">=</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">AVAILABLE</span>
+        <span class="k">elif</span> <span class="n">error_type</span> <span class="o">==</span> <span class="s2">&quot;status_code&quot;</span><span class="p">:</span>
+            <span class="c1"># Checks if the Status Code is equal to the optional &quot;errorCode&quot; given in &#39;data.json&#39;</span>
+            <span class="k">if</span> <span class="n">error_code</span> <span class="o">==</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">:</span>
+                <span class="n">query_status</span> <span class="o">=</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">AVAILABLE</span>
+            <span class="c1"># Checks if the status code of the response is 2XX</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">300</span> <span class="ow">or</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">200</span><span class="p">:</span>
+                <span class="n">query_status</span> <span class="o">=</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">CLAIMED</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">query_status</span> <span class="o">=</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">AVAILABLE</span>
+        <span class="k">elif</span> <span class="n">error_type</span> <span class="o">==</span> <span class="s2">&quot;response_url&quot;</span><span class="p">:</span>
+            <span class="c1"># For this detection method, we have turned off the redirect.</span>
+            <span class="c1"># So, there is no need to check the response URL: it will always</span>
+            <span class="c1"># match the request.  Instead, we will ensure that the response</span>
+            <span class="c1"># code indicates that the request was successful (i.e. no 404, or</span>
+            <span class="c1"># forward to some odd redirect).</span>
+            <span class="k">if</span> <span class="mi">200</span> <span class="o">&lt;=</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">300</span><span class="p">:</span>
+                <span class="n">query_status</span> <span class="o">=</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">CLAIMED</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">query_status</span> <span class="o">=</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">AVAILABLE</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># It should be impossible to ever get here...</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unknown Error Type &#39;</span><span class="si">{</span><span class="n">error_type</span><span class="si">}</span><span class="s2">&#39; for &quot;</span> <span class="sa">f</span><span class="s2">&quot;site &#39;</span><span class="si">{</span><span class="n">social_network</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Notify caller about results of query.</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">QueryResult</span><span class="p">(</span>
+            <span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span>
+            <span class="n">site_name</span><span class="o">=</span><span class="n">social_network</span><span class="p">,</span>
+            <span class="n">site_url_user</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
+            <span class="n">status</span><span class="o">=</span><span class="n">query_status</span><span class="p">,</span>
+            <span class="n">query_time</span><span class="o">=</span><span class="n">response_time</span><span class="p">,</span>
+            <span class="n">context</span><span class="o">=</span><span class="n">error_context</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">query_notify</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+        <span class="c1"># Save status of request</span>
+        <span class="n">results_site</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+
+        <span class="c1"># Save results from request</span>
+        <span class="n">results_site</span><span class="p">[</span><span class="s2">&quot;http_status&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">http_status</span>
+        <span class="n">results_site</span><span class="p">[</span><span class="s2">&quot;response_text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">response_text</span>
+
+        <span class="c1"># Add this site&#39;s results into final dictionary with all of the other results.</span>
+        <span class="n">results_total</span><span class="p">[</span><span class="n">social_network</span><span class="p">]</span> <span class="o">=</span> <span class="n">results_site</span>
+
+    <span class="k">return</span> <span class="n">results_total</span></div>
+
+
+<div class="viewcode-block" id="timeout_check"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.sherlock.timeout_check">[docs]</a><span class="k">def</span> <span class="nf">timeout_check</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check Timeout Argument.</span>
+
+<span class="sd">    Checks timeout for validity.</span>
+
+<span class="sd">    Keyword Arguments:</span>
+<span class="sd">    value                  -- Time in seconds to wait before timing out request.</span>
+
+<span class="sd">    Return Value:</span>
+<span class="sd">    Floating point number representing the time (in seconds) that should be</span>
+<span class="sd">    used for the timeout.</span>
+
+<span class="sd">    NOTE:  Will raise an exception if the timeout in invalid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">float_value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">float_value</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ArgumentTypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Invalid timeout value: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">. Timeout must be a positive number.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">float_value</span></div>
+
+
+<div class="viewcode-block" id="handler"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.sherlock.handler">[docs]</a><span class="k">def</span> <span class="nf">handler</span><span class="p">(</span><span class="n">signal_received</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exit gracefully without throwing errors</span>
+
+<span class="sd">    Source: https://www.devdungeon.com/content/python-catch-sigint-ctrl-c</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.sherlock.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">version_string</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;%(prog)s </span><span class="si">{</span><span class="n">__version__</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">requests</span><span class="o">.</span><span class="n">__description__</span><span class="si">}</span><span class="s2">:  </span><span class="si">{</span><span class="n">requests</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;Python:  </span><span class="si">{</span><span class="n">platform</span><span class="o">.</span><span class="n">python_version</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">module_name</span><span class="si">}</span><span class="s2"> (Version </span><span class="si">{</span><span class="n">__version__</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--version&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;version&quot;</span><span class="p">,</span>
+        <span class="n">version</span><span class="o">=</span><span class="n">version_string</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Display version information and dependencies.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--verbose&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-v&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-d&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--debug&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Display extra debugging information and metrics.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--folderoutput&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-fo&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;folderoutput&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If using multiple usernames, the output of the results will be saved to this folder.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--output&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-o&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;output&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If using single username, the output of the result will be saved to this file.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--tor&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-t&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;tor&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Make requests over Tor; increases runtime; requires Tor to be installed and in system path.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--unique-tor&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-u&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;unique_tor&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Make requests over Tor with new Tor circuit after each request; increases runtime; requires Tor to be installed and in system path.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--csv&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;csv&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Create Comma-Separated Values (CSV) File.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--xlsx&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;xlsx&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Create the standard file for the modern Microsoft Excel spreadsheet (xslx).&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--site&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;SITE_NAME&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;site_list&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Limit analysis to just the listed sites. Add multiple options to specify more than one site.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--proxy&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-p&quot;</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;PROXY_URL&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;proxy&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Make requests over a proxy. e.g. socks5://127.0.0.1:1080&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--json&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-j&quot;</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;JSON_FILE&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;json_file&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Load data from a JSON file or an online, valid, JSON file.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--timeout&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;TIMEOUT&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;timeout&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">timeout_check</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Time (in seconds) to wait for response to requests (Default: 60)&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--print-all&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;print_all&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Output sites where the username was not found.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--print-found&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;print_found&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Output sites where the username was found (also if exported as file).&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--no-color&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;no_color&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Don&#39;t color terminal output&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;username&quot;</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;USERNAMES&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;One or more usernames to check with social networks. Check similar usernames using {?} (replace to &#39;_&#39;, &#39;-&#39;, &#39;.&#39;).&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--browse&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-b&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;browse&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Browse to all results on default browser.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--local&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-l&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Force the use of the local data.json file.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--nsfw&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Include checking of NSFW sites from default list.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="c1"># If the user presses CTRL-C, exit gracefully without throwing errors</span>
+    <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span>
+
+    <span class="c1"># Check for newer version of Sherlock. If it exists, let the user know about it</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s2">&quot;https://raw.githubusercontent.com/sherlock-project/sherlock/master/sherlock/sherlock.py&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">remote_version</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;__version__ = &quot;(.*)&quot;&#39;</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">local_version</span> <span class="o">=</span> <span class="n">__version__</span>
+
+        <span class="k">if</span> <span class="n">remote_version</span> <span class="o">!=</span> <span class="n">local_version</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;Update Available!</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;You are running version </span><span class="si">{</span><span class="n">local_version</span><span class="si">}</span><span class="s2">. Version </span><span class="si">{</span><span class="n">remote_version</span><span class="si">}</span><span class="s2"> is available at https://github.com/sherlock-project/sherlock&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;A problem occurred while checking for an update: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Argument check</span>
+    <span class="c1"># TODO regex check on args.proxy</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">tor</span> <span class="ow">and</span> <span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">proxy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Tor and Proxy cannot be set at the same time.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Make prompts</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">proxy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using the proxy: &quot;</span> <span class="o">+</span> <span class="n">args</span><span class="o">.</span><span class="n">proxy</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">tor</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">unique_tor</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using Tor to make requests&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;Warning: some websites might refuse connecting over Tor, so note that using this option might increase connection errors.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">no_color</span><span class="p">:</span>
+        <span class="c1"># Disable color output.</span>
+        <span class="n">init</span><span class="p">(</span><span class="n">strip</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">convert</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Enable color output.</span>
+        <span class="n">init</span><span class="p">(</span><span class="n">autoreset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Check if both output methods are entered as input.</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">folderoutput</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;You can only use one of the output methods.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Check validity for single username output.</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">username</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;You can only use --output with a single username&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Create object with all information about sites we are aware of.</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">local</span><span class="p">:</span>
+            <span class="n">sites</span> <span class="o">=</span> <span class="n">SitesInformation</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;resources/data.json&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sites</span> <span class="o">=</span> <span class="n">SitesInformation</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">json_file</span><span class="p">)</span>
+            
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR:  </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">nsfw</span><span class="p">:</span>
+        <span class="n">sites</span><span class="o">.</span><span class="n">remove_nsfw_sites</span><span class="p">()</span>
+
+    <span class="c1"># Create original dictionary from SitesInformation() object.</span>
+    <span class="c1"># Eventually, the rest of the code will be updated to use the new object</span>
+    <span class="c1"># directly, but this will glue the two pieces together.</span>
+    <span class="n">site_data_all</span> <span class="o">=</span> <span class="p">{</span><span class="n">site</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">site</span><span class="o">.</span><span class="n">information</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">sites</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">site_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Not desired to look at a sub-set of sites</span>
+        <span class="n">site_data</span> <span class="o">=</span> <span class="n">site_data_all</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># User desires to selectively run queries on a sub-set of the site list.</span>
+        <span class="c1"># Make sure that the sites are supported &amp; build up pruned site database.</span>
+        <span class="n">site_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">site_missing</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">site_list</span><span class="p">:</span>
+            <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">existing_site</span> <span class="ow">in</span> <span class="n">site_data_all</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">site</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">existing_site</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                    <span class="n">site_data</span><span class="p">[</span><span class="n">existing_site</span><span class="p">]</span> <span class="o">=</span> <span class="n">site_data_all</span><span class="p">[</span><span class="n">existing_site</span><span class="p">]</span>
+                    <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Build up list of sites not supported for future error message.</span>
+                <span class="n">site_missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">site</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">site_missing</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: Desired sites not found: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">site_missing</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">site_data</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Create notify object for query results.</span>
+    <span class="n">query_notify</span> <span class="o">=</span> <span class="n">QueryNotifyPrint</span><span class="p">(</span>
+        <span class="n">result</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="n">print_all</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">print_all</span><span class="p">,</span> <span class="n">browse</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">browse</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Run report on all specified users.</span>
+    <span class="n">all_usernames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">username</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">username</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">check_for_parameter</span><span class="p">(</span><span class="n">username</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">multiple_usernames</span><span class="p">(</span><span class="n">username</span><span class="p">):</span>
+                <span class="n">all_usernames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">all_usernames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">username</span> <span class="ow">in</span> <span class="n">all_usernames</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">sherlock</span><span class="p">(</span>
+            <span class="n">username</span><span class="p">,</span>
+            <span class="n">site_data</span><span class="p">,</span>
+            <span class="n">query_notify</span><span class="p">,</span>
+            <span class="n">tor</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">tor</span><span class="p">,</span>
+            <span class="n">unique_tor</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">unique_tor</span><span class="p">,</span>
+            <span class="n">proxy</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">proxy</span><span class="p">,</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">timeout</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">:</span>
+            <span class="n">result_file</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">output</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">folderoutput</span><span class="p">:</span>
+            <span class="c1"># The usernames results should be stored in a targeted folder.</span>
+            <span class="c1"># If the folder doesn&#39;t exist, create it first</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">folderoutput</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">result_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">folderoutput</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">.txt&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">.txt&quot;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">result_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">exists_counter</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">website_name</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                <span class="n">dictionary</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="n">website_name</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">dictionary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">CLAIMED</span><span class="p">:</span>
+                    <span class="n">exists_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">dictionary</span><span class="p">[</span><span class="s2">&quot;url_user&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total Websites Username Detected On : </span><span class="si">{</span><span class="n">exists_counter</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">csv</span><span class="p">:</span>
+            <span class="n">result_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">.csv&quot;</span>
+            <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">folderoutput</span><span class="p">:</span>
+                <span class="c1"># The usernames results should be stored in a targeted folder.</span>
+                <span class="c1"># If the folder doesn&#39;t exist, create it first</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">folderoutput</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">result_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">folderoutput</span><span class="p">,</span> <span class="n">result_file</span><span class="p">)</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">result_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_report</span><span class="p">:</span>
+                <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">csv_report</span><span class="p">)</span>
+                <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="s2">&quot;username&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;name&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;url_main&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;url_user&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;exists&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;http_status&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;response_time_s&quot;</span><span class="p">,</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="n">args</span><span class="o">.</span><span class="n">print_found</span>
+                        <span class="ow">and</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">print_all</span>
+                        <span class="ow">and</span> <span class="n">results</span><span class="p">[</span><span class="n">site</span><span class="p">][</span><span class="s2">&quot;status&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">CLAIMED</span>
+                    <span class="p">):</span>
+                        <span class="k">continue</span>
+
+                    <span class="n">response_time_s</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="n">site</span><span class="p">][</span><span class="s2">&quot;status&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">query_time</span>
+                    <span class="k">if</span> <span class="n">response_time_s</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">response_time_s</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span>
+                        <span class="p">[</span>
+                            <span class="n">username</span><span class="p">,</span>
+                            <span class="n">site</span><span class="p">,</span>
+                            <span class="n">results</span><span class="p">[</span><span class="n">site</span><span class="p">][</span><span class="s2">&quot;url_main&quot;</span><span class="p">],</span>
+                            <span class="n">results</span><span class="p">[</span><span class="n">site</span><span class="p">][</span><span class="s2">&quot;url_user&quot;</span><span class="p">],</span>
+                            <span class="nb">str</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">site</span><span class="p">][</span><span class="s2">&quot;status&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">status</span><span class="p">),</span>
+                            <span class="n">results</span><span class="p">[</span><span class="n">site</span><span class="p">][</span><span class="s2">&quot;http_status&quot;</span><span class="p">],</span>
+                            <span class="n">response_time_s</span><span class="p">,</span>
+                        <span class="p">]</span>
+                    <span class="p">)</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">xlsx</span><span class="p">:</span>
+            <span class="n">usernames</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">url_main</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">url_user</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">exists</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">http_status</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">response_time_s</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">args</span><span class="o">.</span><span class="n">print_found</span>
+                    <span class="ow">and</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">print_all</span>
+                    <span class="ow">and</span> <span class="n">results</span><span class="p">[</span><span class="n">site</span><span class="p">][</span><span class="s2">&quot;status&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">CLAIMED</span>
+                <span class="p">):</span>
+                    <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="n">response_time_s</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">response_time_s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">response_time_s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">site</span><span class="p">][</span><span class="s2">&quot;status&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">query_time</span><span class="p">)</span>
+                <span class="n">usernames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+                <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">site</span><span class="p">)</span>
+                <span class="n">url_main</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">site</span><span class="p">][</span><span class="s2">&quot;url_main&quot;</span><span class="p">])</span>
+                <span class="n">url_user</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">site</span><span class="p">][</span><span class="s2">&quot;url_user&quot;</span><span class="p">])</span>
+                <span class="n">exists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">site</span><span class="p">][</span><span class="s2">&quot;status&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">status</span><span class="p">))</span>
+                <span class="n">http_status</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">site</span><span class="p">][</span><span class="s2">&quot;http_status&quot;</span><span class="p">])</span>
+
+            <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">usernames</span><span class="p">,</span>
+                    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span>
+                    <span class="s2">&quot;url_main&quot;</span><span class="p">:</span> <span class="n">url_main</span><span class="p">,</span>
+                    <span class="s2">&quot;url_user&quot;</span><span class="p">:</span> <span class="n">url_user</span><span class="p">,</span>
+                    <span class="s2">&quot;exists&quot;</span><span class="p">:</span> <span class="n">exists</span><span class="p">,</span>
+                    <span class="s2">&quot;http_status&quot;</span><span class="p">:</span> <span class="n">http_status</span><span class="p">,</span>
+                    <span class="s2">&quot;response_time_s&quot;</span><span class="p">:</span> <span class="n">response_time_s</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+            <span class="n">DataFrame</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">.xlsx&quot;</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="s2">&quot;sheet1&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">()</span>
+    <span class="n">query_notify</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.socmed.sherlock.notify &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">ida</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ida.socmed.sherlock.notify</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ida.socmed.sherlock.notify</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Sherlock Notify Module</span>
+
+<span class="sd">This module defines the objects for notifying the caller about the</span>
+<span class="sd">results of queries.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">.result</span> <span class="kn">import</span> <span class="n">QueryStatus</span>
+<span class="kn">from</span> <span class="nn">colorama</span> <span class="kn">import</span> <span class="n">Fore</span><span class="p">,</span> <span class="n">Style</span>
+<span class="kn">import</span> <span class="nn">webbrowser</span>
+
+<span class="c1"># Global variable to count the number of results.</span>
+<span class="n">globvar</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+<div class="viewcode-block" id="QueryNotify"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.notify.QueryNotify">[docs]</a><span class="k">class</span> <span class="nc">QueryNotify</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Query Notify Object.</span>
+
+<span class="sd">    Base class that describes methods available to notify the results of</span>
+<span class="sd">    a query.</span>
+<span class="sd">    It is intended that other classes inherit from this base class and</span>
+<span class="sd">    override the methods to implement specific functionality.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create Query Notify Object.</span>
+
+<span class="sd">        Contains information about a specific method of notifying the results</span>
+<span class="sd">        of a query.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+<span class="sd">        result                 -- Object of type QueryResult() containing</span>
+<span class="sd">                                  results for this query.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        Nothing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="n">result</span>
+
+        <span class="c1"># return</span>
+
+<div class="viewcode-block" id="QueryNotify.start"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.notify.QueryNotify.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Notify Start.</span>
+
+<span class="sd">        Notify method for start of query.  This method will be called before</span>
+<span class="sd">        any queries are performed.  This method will typically be</span>
+<span class="sd">        overridden by higher level classes that will inherit from it.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+<span class="sd">        message                -- Object that is used to give context to start</span>
+<span class="sd">                                  of query.</span>
+<span class="sd">                                  Default is None.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        Nothing.</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+        <span class="c1"># return</span>
+
+<div class="viewcode-block" id="QueryNotify.update"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.notify.QueryNotify.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Notify Update.</span>
+
+<span class="sd">        Notify method for query result.  This method will typically be</span>
+<span class="sd">        overridden by higher level classes that will inherit from it.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+<span class="sd">        result                 -- Object of type QueryResult() containing</span>
+<span class="sd">                                  results for this query.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        Nothing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="n">result</span></div>
+
+        <span class="c1"># return</span>
+
+<div class="viewcode-block" id="QueryNotify.finish"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.notify.QueryNotify.finish">[docs]</a>    <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Notify Finish.</span>
+
+<span class="sd">        Notify method for finish of query.  This method will be called after</span>
+<span class="sd">        all queries have been performed.  This method will typically be</span>
+<span class="sd">        overridden by higher level classes that will inherit from it.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+<span class="sd">        message                -- Object that is used to give context to start</span>
+<span class="sd">                                  of query.</span>
+<span class="sd">                                  Default is None.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        Nothing.</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+        <span class="c1"># return</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert Object To String.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        Nicely formatted string to get information about this object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QueryNotifyPrint"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.notify.QueryNotifyPrint">[docs]</a><span class="k">class</span> <span class="nc">QueryNotifyPrint</span><span class="p">(</span><span class="n">QueryNotify</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Query Notify Print Object.</span>
+
+<span class="sd">    Query notify class that prints results.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">print_all</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">browse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create Query Notify Print Object.</span>
+
+<span class="sd">        Contains information about a specific method of notifying the results</span>
+<span class="sd">        of a query.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+<span class="sd">        result                 -- Object of type QueryResult() containing</span>
+<span class="sd">                                  results for this query.</span>
+<span class="sd">        verbose                -- Boolean indicating whether to give verbose output.</span>
+<span class="sd">        print_all              -- Boolean indicating whether to only print all sites, including not found.</span>
+<span class="sd">        browse                 -- Boolean indicating whether to open found sites in a web browser.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        Nothing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">print_all</span> <span class="o">=</span> <span class="n">print_all</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">browse</span> <span class="o">=</span> <span class="n">browse</span>
+
+        <span class="k">return</span>
+
+<div class="viewcode-block" id="QueryNotifyPrint.start"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.notify.QueryNotifyPrint.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Notify Start.</span>
+
+<span class="sd">        Will print the title to the standard output.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+<span class="sd">        message                -- String containing username that the series</span>
+<span class="sd">                                  of queries are about.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        Nothing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Checking username&quot;</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="n">Style</span><span class="o">.</span><span class="n">BRIGHT</span> <span class="o">+</span> <span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span>
+              <span class="n">Fore</span><span class="o">.</span><span class="n">YELLOW</span> <span class="o">+</span> <span class="s2">&quot;*&quot;</span> <span class="o">+</span>
+              <span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;] </span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">+</span>
+              <span class="n">Fore</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">+</span>
+              <span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="s2">&quot; on:&quot;</span><span class="p">)</span>
+        <span class="c1"># An empty line between first line and the result(more clear output)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="QueryNotifyPrint.countResults"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.notify.QueryNotifyPrint.countResults">[docs]</a>    <span class="k">def</span> <span class="nf">countResults</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This function counts the number of results. Every time the function is called,</span>
+<span class="sd">        the number of results is increasing.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        The number of results by the time we call the function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">global</span> <span class="n">globvar</span>
+        <span class="n">globvar</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">globvar</span></div>
+
+<div class="viewcode-block" id="QueryNotifyPrint.update"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.notify.QueryNotifyPrint.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Notify Update.</span>
+
+<span class="sd">        Will print the query result to the standard output.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+<span class="sd">        result                 -- Object of type QueryResult() containing</span>
+<span class="sd">                                  results for this query.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        Nothing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="n">result</span>
+
+        <span class="n">response_time_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">query_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">response_time_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; [</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">query_time</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1000</span><span class="p">)</span><span class="si">}</span><span class="s2">ms]&quot;</span>
+
+        <span class="c1"># Output to the terminal is desired.</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">CLAIMED</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">countResults</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">Style</span><span class="o">.</span><span class="n">BRIGHT</span> <span class="o">+</span> <span class="n">Fore</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span>
+                  <span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="s2">&quot;+&quot;</span> <span class="o">+</span>
+                  <span class="n">Fore</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span> <span class="o">+</span>
+                  <span class="n">response_time_text</span> <span class="o">+</span>
+                  <span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span>
+                  <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">site_name</span><span class="si">}</span><span class="s2">: &quot;</span> <span class="o">+</span>
+                  <span class="n">Style</span><span class="o">.</span><span class="n">RESET_ALL</span> <span class="o">+</span>
+                  <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">site_url_user</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">browse</span><span class="p">:</span>
+                <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">site_url_user</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">result</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">AVAILABLE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">print_all</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">Style</span><span class="o">.</span><span class="n">BRIGHT</span> <span class="o">+</span> <span class="n">Fore</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span>
+                      <span class="n">Fore</span><span class="o">.</span><span class="n">RED</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span>
+                      <span class="n">Fore</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span> <span class="o">+</span>
+                      <span class="n">response_time_text</span> <span class="o">+</span>
+                      <span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">site_name</span><span class="si">}</span><span class="s2">:&quot;</span> <span class="o">+</span>
+                      <span class="n">Fore</span><span class="o">.</span><span class="n">YELLOW</span> <span class="o">+</span> <span class="s2">&quot; Not Found!&quot;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">result</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">print_all</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">Style</span><span class="o">.</span><span class="n">BRIGHT</span> <span class="o">+</span> <span class="n">Fore</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span>
+                      <span class="n">Fore</span><span class="o">.</span><span class="n">RED</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span>
+                      <span class="n">Fore</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span> <span class="o">+</span>
+                      <span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">site_name</span><span class="si">}</span><span class="s2">:&quot;</span> <span class="o">+</span>
+                      <span class="n">Fore</span><span class="o">.</span><span class="n">RED</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">context</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">+</span>
+                      <span class="n">Fore</span><span class="o">.</span><span class="n">YELLOW</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">result</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">QueryStatus</span><span class="o">.</span><span class="n">ILLEGAL</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">print_all</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Illegal Username Format For This Site!&quot;</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">Style</span><span class="o">.</span><span class="n">BRIGHT</span> <span class="o">+</span> <span class="n">Fore</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span>
+                      <span class="n">Fore</span><span class="o">.</span><span class="n">RED</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span>
+                      <span class="n">Fore</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span> <span class="o">+</span>
+                      <span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">site_name</span><span class="si">}</span><span class="s2">:&quot;</span> <span class="o">+</span>
+                      <span class="n">Fore</span><span class="o">.</span><span class="n">YELLOW</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># It should be impossible to ever get here...</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unknown Query Status &#39;</span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">&#39; for site &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">site_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="QueryNotifyPrint.finish"><a class="viewcode-back" href="../../../../ida.socmed.sherlock.html#ida.socmed.sherlock.notify.QueryNotifyPrint.finish">[docs]</a>    <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;The processing has been finished.&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Notify Start.</span>
+<span class="sd">        Will print the last line to the standard output.</span>
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+<span class="sd">        message                -- The 2 last phrases.</span>
+<span class="sd">        Return Value:</span>
+<span class="sd">        Nothing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">NumberOfResults</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">countResults</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="n">Style</span><span class="o">.</span><span class="n">BRIGHT</span> <span class="o">+</span> <span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span>
+              <span class="n">Fore</span><span class="o">.</span><span class="n">YELLOW</span> <span class="o">+</span> <span class="s2">&quot;*&quot;</span> <span class="o">+</span>
+              <span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="s2">&quot;] Search completed with&quot;</span> <span class="o">+</span>
+              <span class="n">Fore</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">NumberOfResults</span><span class="si">}</span><span class="s2"> &quot;</span> <span class="o">+</span>
+              <span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="s2">&quot;results&quot;</span> <span class="o">+</span> <span class="n">Style</span><span class="o">.</span><span class="n">RESET_ALL</span>
+              <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert Object To String.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        self                   -- This object.</span>
+
+<span class="sd">        Return Value:</span>
+<span class="sd">        Nicely formatted string to get information about this object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

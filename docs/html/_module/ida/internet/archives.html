@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.internet.archives &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">ida</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ida.internet.archives</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ida.internet.archives</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Functions for interacting with web archives.&quot;&quot;&quot;</span>
+ 
+<span class="kn">from</span> <span class="nn">.webanalysis</span> <span class="kn">import</span> <span class="n">correct_url</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="kn">import</span> <span class="nn">webbrowser</span>
+
+<span class="kn">import</span> <span class="nn">wayback</span>
+<span class="kn">from</span> <span class="nn">wayback</span> <span class="kn">import</span> <span class="n">WaybackClient</span>
+<span class="kn">from</span> <span class="nn">comcrawl</span> <span class="kn">import</span> <span class="n">IndexClient</span>
+
+<div class="viewcode-block" id="search_archiveis"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.archives.search_archiveis">[docs]</a><span class="k">def</span> <span class="nf">search_archiveis</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Opens an ArchiveIs search for a URL using the default web browser.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Creating base for search URL</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://archive.is/&#39;</span> <span class="o">+</span> <span class="n">url</span>
+    
+    <span class="c1"># Opening search in browser</span>
+    <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="search_internet_archive"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.archives.search_internet_archive">[docs]</a><span class="k">def</span> <span class="nf">search_internet_archive</span><span class="p">(</span>
+                            <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> 
+                           <span class="n">get</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span> 
+                           <span class="n">from_datetime</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                           <span class="n">to_datetime</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                           <span class="n">filter_field</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                           <span class="n">output_metadata</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+                            <span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Searches the Internet Archive for a URL.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : str</span>
+<span class="sd">        URL to search. Defaults to requesting from user input.</span>
+<span class="sd">    get : str</span>
+<span class="sd">        whether to return the first archive result or all results. Defaults to &#39;all&#39;.</span>
+<span class="sd">    from_datetime : str or None</span>
+<span class="sd">        earliest date to search from. Defaults to None.</span>
+<span class="sd">    to_datetime : str or None</span>
+<span class="sd">        last date to search until. Defaults to None.</span>
+<span class="sd">    filter_field : str</span>
+<span class="sd">        the field to return.</span>
+<span class="sd">    output_metadata : bool</span>
+<span class="sd">        whether to output archive metdata.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Formatting datetimes if passed as arguments </span>
+    <span class="k">if</span> <span class="n">from_datetime</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+    
+        <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">from_datetime</span><span class="p">:</span>
+            <span class="n">from_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">from_datetime</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">.%m.%Y&#39;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="s1">&#39;/&#39;</span> <span class="ow">in</span> <span class="n">from_datetime</span><span class="p">:</span>
+            <span class="n">from_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">from_datetime</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/%m/%Y&#39;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="s1">&#39;-&#39;</span> <span class="ow">in</span> <span class="n">from_datetime</span><span class="p">:</span>
+            <span class="n">from_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">from_datetime</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">-%m-%Y&#39;</span><span class="p">)</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">from_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">from_datetime</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">%m%Y&#39;</span><span class="p">)</span>
+            
+        <span class="n">from_datetime</span> <span class="o">=</span> <span class="n">from_datetime</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">to_datetime</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+    
+        <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">to_datetime</span><span class="p">:</span>
+            <span class="n">to_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">to_datetime</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">.%m.%Y&#39;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="s1">&#39;/&#39;</span> <span class="ow">in</span> <span class="n">to_datetime</span><span class="p">:</span>
+            <span class="n">to_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">to_datetime</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/%m/%Y&#39;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="s1">&#39;-&#39;</span> <span class="ow">in</span> <span class="n">to_datetime</span><span class="p">:</span>
+            <span class="n">to_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">to_datetime</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">-%m-%Y&#39;</span><span class="p">)</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">to_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">to_datetime</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">%m%Y&#39;</span><span class="p">)</span>
+            
+        <span class="n">to_datetime</span> <span class="o">=</span> <span class="n">to_datetime</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+    
+    <span class="c1"># Initialising Wayback Machine client</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">WaybackClient</span><span class="p">()</span>
+    
+    <span class="c1"># Retrieving results</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">url</span><span class="p">,</span>
+                            <span class="n">from_date</span> <span class="o">=</span> <span class="n">from_datetime</span><span class="p">,</span> 
+                            <span class="n">to_date</span> <span class="o">=</span> <span class="n">to_datetime</span><span class="p">,</span>
+                            <span class="n">filter_field</span> <span class="o">=</span> <span class="kc">None</span>
+                           <span class="p">)</span>
+    
+    <span class="c1"># Exiting if no results found</span>
+    <span class="k">if</span> <span class="n">results</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No archives found&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Initialising metadata dictionary</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="c1"># If instructed to get the first result, retrieving metadata for first Wayback result</span>
+    <span class="k">if</span> <span class="n">get</span> <span class="o">==</span> <span class="s1">&#39;first&#39;</span><span class="p">:</span>
+        
+        <span class="n">record</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+        
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="n">record</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="s1">&#39;date_time&#39;</span><span class="p">:</span> <span class="n">record</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">),</span>
+                <span class="s1">&#39;file_type&#39;</span><span class="p">:</span> <span class="n">record</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                <span class="s1">&#39;status_code&#39;</span><span class="p">:</span> <span class="n">record</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+                <span class="s1">&#39;raw_url&#39;</span><span class="p">:</span> <span class="n">record</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span>
+                <span class="s1">&#39;view_url&#39;</span><span class="p">:</span> <span class="n">record</span><span class="p">[</span><span class="mi">8</span><span class="p">]}</span>
+        
+        <span class="c1"># Outputting metadata if instructed</span>
+        <span class="k">if</span> <span class="n">output_metadata</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">record</span>
+    
+    <span class="c1"># Otherwise, iterating through results and outputting all metadata</span>
+    <span class="k">else</span><span class="p">:</span> 
+        
+        <span class="n">record_list</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="n">record_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            
+            
+            <span class="n">metadata</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="s1">&#39;date_time&#39;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">),</span>
+                <span class="s1">&#39;file_type&#39;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                <span class="s1">&#39;status_code&#39;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+                <span class="s1">&#39;raw_url&#39;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span>
+                <span class="s1">&#39;view_url&#39;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">8</span><span class="p">]}</span>
+    
+        <span class="k">if</span> <span class="n">output_metadata</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+        
+        <span class="c1"># If instructed to get the last result, retrieving metadata for last Wayback result</span>
+        <span class="k">if</span> <span class="n">get</span> <span class="o">==</span> <span class="s1">&#39;latest&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">record_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">record_list</span></div>
+    
+        
+    
+
+<div class="viewcode-block" id="open_internet_archive"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.archives.open_internet_archive">[docs]</a><span class="k">def</span> <span class="nf">open_internet_archive</span><span class="p">(</span>
+                        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> 
+                          <span class="n">precise_date</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                          <span class="n">date_range</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                          <span class="n">get</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;first&#39;</span><span class="p">,</span> 
+                          <span class="n">open_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+                         <span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Opens Internet Archive search for a URL in default browser.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : str</span>
+<span class="sd">        URL of archive to open. Defaults to requesting from user input.</span>
+<span class="sd">    precise_date : str, datetime, or None</span>
+<span class="sd">        a specific date to retrieve archive results from. If None, this is ignored. Defaults to None.</span>
+<span class="sd">    date_range : str or None</span>
+<span class="sd">        range of archive dates to open.</span>
+<span class="sd">    get : str</span>
+<span class="sd">        whether to return the first archive result or all results. Defaults to &#39;all&#39;.</span>
+<span class="sd">    open_index : int</span>
+<span class="sd">        index of result to open. Defaults to 0.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Correcting URL</span>
+    <span class="k">if</span> <span class="s1">&#39;http&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://&#39;</span> <span class="o">+</span> <span class="n">url</span>
+    
+    <span class="c1"># Defining base URL for search</span>
+    <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;https://web.archive.org/web/&#39;</span>
+    
+    <span class="c1"># If provided with a precise date, formatting search URL to specify that date</span>
+    <span class="k">if</span> <span class="n">precise_date</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        
+        <span class="n">precise_date</span> <span class="o">=</span> <span class="n">precise_date</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+        <span class="n">date_time_obj</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">precise_date</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">-%m-%Y&#39;</span><span class="p">)</span>
+        <span class="n">date_time_str</span> <span class="o">=</span> <span class="n">date_time_obj</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y%m</span><span class="si">%d%%</span><span class="s1">H%M%S&#39;</span><span class="p">)</span>
+        <span class="n">archive_url</span> <span class="o">=</span> <span class="n">url_base</span> <span class="o">+</span> <span class="n">date_time_str</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
+        
+        <span class="c1"># Running search</span>
+        <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">archive_url</span><span class="p">)</span>
+    
+    <span class="c1"># If provided with a date range, formatting search URL to specify that range</span>
+    <span class="k">if</span> <span class="n">date_range</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        
+        <span class="n">dates</span> <span class="o">=</span> <span class="n">date_range</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; to &#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
+        <span class="n">dates</span> <span class="o">=</span> <span class="n">dates</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+        <span class="n">from_date</span> <span class="o">=</span> <span class="n">dates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">to_date</span> <span class="o">=</span> <span class="n">dates</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    
+    <span class="k">else</span><span class="p">:</span> 
+        <span class="n">from_date</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">to_date</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="c1"># Running search</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">search_internet_archive</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">get</span> <span class="o">=</span> <span class="n">get</span><span class="p">,</span> <span class="n">from_datetime</span> <span class="o">=</span> <span class="n">from_date</span><span class="p">,</span> <span class="n">to_datetime</span> <span class="o">=</span> <span class="n">to_date</span><span class="p">)</span>
+    
+    <span class="c1"># Correcting result type</span>
+    <span class="k">if</span> <span class="s1">&#39;)/&#39;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">result</span><span class="p">]</span>
+    
+    <span class="c1"># Checking if result is None or invalid</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">result</span> <span class="o">==</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">return</span>
+    
+    <span class="c1"># If instructed, opening all archives in browser</span>
+    <span class="k">if</span> <span class="n">open_index</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)):</span>
+            <span class="n">archive_url</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">8</span><span class="p">]</span>
+            <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">archive_url</span><span class="p">)</span>
+   
+    <span class="c1"># Else, opening specified archive as instructed</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">archive_url</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="n">open_index</span><span class="p">][</span><span class="mi">8</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">archive_url</span><span class="p">)</span></div>
+    
+    
+
+<div class="viewcode-block" id="search_common_crawl"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.archives.search_common_crawl">[docs]</a><span class="k">def</span> <span class="nf">search_common_crawl</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Searches the Common Crawl for a URL.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : str</span>
+<span class="sd">        URL to search. Defaults to requesting from user input.</span>
+<span class="sd">    threads : int</span>
+<span class="sd">        how many threads to use.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Adding URL prefixes and domain if necessary</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">correct_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    
+    <span class="c1"># Initialising CC client</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">IndexClient</span><span class="p">()</span>
+
+    <span class="c1"># Searching CC</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">threads</span> <span class="o">=</span> <span class="n">threads</span><span class="p">)</span>
+    
+    <span class="c1"># Downloading result</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">threads</span> <span class="o">=</span> <span class="n">threads</span><span class="p">)</span>
+    
+    <span class="c1"># Storing result</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">results</span>
+    
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="search_cc_index"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.archives.search_cc_index">[docs]</a><span class="k">def</span> <span class="nf">search_cc_index</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">index_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;CC-MAIN-2023-40&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Searches the Common Crawl&#39;s index for a URL.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : str</span>
+<span class="sd">        URL to search. Defaults to requesting from user input.</span>
+<span class="sd">    index_name : str</span>
+<span class="sd">        the Common Crawl index you want to query.</span>
+<span class="sd">        *** Replace this with the latest index name</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Defining the URL of the Common Crawl Index server</span>
+    <span class="n">CC_INDEX_SERVER</span> <span class="o">=</span> <span class="s1">&#39;http://index.commoncrawl.org/&#39;</span>
+    
+    
+    <span class="n">encoded_url</span> <span class="o">=</span> <span class="n">quote_plus</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="n">index_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">CC_INDEX_SERVER</span><span class="si">}{</span><span class="n">index_name</span><span class="si">}</span><span class="s1">-index?url=</span><span class="si">{</span><span class="n">encoded_url</span><span class="si">}</span><span class="s1">&amp;output=json&#39;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">index_url</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Response from CCI:&quot;</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>  <span class="c1"># Output the response from the server</span>
+    
+    <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+        <span class="n">records</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">record</span><span class="p">)</span> <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">records</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="fetch_page_from_cc"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.archives.fetch_page_from_cc">[docs]</a><span class="k">def</span> <span class="nf">fetch_page_from_cc</span><span class="p">(</span><span class="n">records</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fetches Common Crawl records.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">records</span><span class="p">:</span>
+        <span class="n">offset</span><span class="p">,</span> <span class="n">length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;offset&#39;</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">])</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">s3_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;https://data.commoncrawl.org/</span><span class="si">{</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s3_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Range&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;bytes=</span><span class="si">{</span><span class="n">offset</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">offset</span><span class="o">+</span><span class="n">length</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">})</span>
+        
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">206</span><span class="p">:</span>
+            <span class="c1"># Process the response content if necessary</span>
+            <span class="c1"># For example, you can use warcio to parse the WARC record</span>
+            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to fetch data: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+        
+<div class="viewcode-block" id="fetch_common_crawl_record"><a class="viewcode-back" href="../../../ida.internet.html#ida.internet.archives.fetch_common_crawl_record">[docs]</a><span class="k">def</span> <span class="nf">fetch_common_crawl_record</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">index_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;CC-MAIN-2023-40&#39;</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fetches Common Crawl records for URL.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : str</span>
+<span class="sd">        url to fetch</span>
+<span class="sd">    index_name : str</span>
+<span class="sd">        the Common Crawl index you want to query</span>
+<span class="sd">        *** Replace this with the latest index name</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Requesting URL from user input if none given</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="s1">&#39;request_input&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;URL: &#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Search the index for the target URL</span>
+    <span class="n">records</span> <span class="o">=</span> <span class="n">search_cc_index</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">index_name</span><span class="p">)</span>
+    
+    <span class="c1"># Proceeding if records found</span>
+    <span class="k">if</span> <span class="n">records</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">records</span><span class="p">)</span><span class="si">}</span><span class="s2"> records for </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Fetch the page content from the first record</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">fetch_page_from_cc</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">content</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully fetched content for </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># You can now process the &#39;content&#39; variable as needed</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No records found for </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="k">return</span> <span class="n">content</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
