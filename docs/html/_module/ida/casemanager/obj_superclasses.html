@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ida.casemanager.obj_superclasses &mdash; IDA 0.01 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            IDA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">ida</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">IDA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ida.casemanager.obj_superclasses</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ida.casemanager.obj_superclasses</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">..core.basics</span> <span class="kn">import</span> <span class="n">Iterator</span>
+<span class="kn">from</span> <span class="nn">..exporters.general_exporters</span> <span class="kn">import</span> <span class="n">export_obj</span><span class="p">,</span> <span class="n">obj_to_folder</span>
+<span class="kn">from</span> <span class="nn">.obj_properties</span> <span class="kn">import</span> <span class="n">CaseObjectProperties</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<div class="viewcode-block" id="CaseAttr"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseAttr">[docs]</a><span class="k">class</span> <span class="nc">CaseAttr</span><span class="p">:</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is a general class of objects intended for use as a superclass for all case attributes.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj_type : str</span>
+<span class="sd">        type of object.</span>
+<span class="sd">    obj_name : str</span>
+<span class="sd">        name for object.</span>
+<span class="sd">    parent_obj_path : str</span>
+<span class="sd">        if object is an attribute of another object, object path for the parent object. </span>
+<span class="sd">    size : float</span>
+<span class="sd">        size of object in memory.</span>
+<span class="sd">        </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    properties : CaseObjectProperties</span>
+<span class="sd">        metadata for CaseAttr object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj_type</span> <span class="o">=</span> <span class="s1">&#39;CaseAttr&#39;</span><span class="p">,</span> <span class="n">obj_name</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">parent_obj_path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialises CaseAttr instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj_type : str</span>
+<span class="sd">            type of object.</span>
+<span class="sd">        obj_name : str</span>
+<span class="sd">            name for object.</span>
+<span class="sd">        parent_obj_path : str</span>
+<span class="sd">            if object is an attribute of another object, object path for the parent object. </span>
+<span class="sd">        size : float</span>
+<span class="sd">            size of object in memory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties</span> <span class="o">=</span> <span class="n">CaseObjectProperties</span><span class="p">(</span><span class="n">obj_name</span> <span class="o">=</span> <span class="n">obj_name</span><span class="p">,</span> <span class="n">obj_type</span> <span class="o">=</span> <span class="n">obj_type</span><span class="p">,</span> <span class="n">parent_obj_path</span> <span class="o">=</span> <span class="n">parent_obj_path</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="n">size</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="CaseAttr.get_obj_type"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseAttr.get_obj_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_obj_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the object&#39;s type as stored in its properties attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">obj_type</span></div>
+    
+<div class="viewcode-block" id="CaseAttr.get_obj_path"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseAttr.get_obj_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_obj_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the object&#39;s path in the environment, as stored in its properties attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">obj_path</span></div>
+    
+<div class="viewcode-block" id="CaseAttr.copy"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseAttr.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a copy of object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="CaseAttr.attributes"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseAttr.attributes">[docs]</a>    <span class="k">def</span> <span class="nf">attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of attributes assigned to object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+    
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Makes CaseAttr objects iterable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="n">Iterator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="CaseAttr.get_name_str"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseAttr.get_name_str">[docs]</a>    <span class="k">def</span> <span class="nf">get_name_str</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the object&#39;s variable name as a string. </span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">            * Searches global environment dictionary for objects sharing object&#39;s ID. Returns key if found.</span>
+<span class="sd">            * If none found, searches local environment dictionary for objects sharing object&#39;s ID. Returns key if found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">globals</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">id</span><span class="p">(</span><span class="nb">globals</span><span class="p">()[</span><span class="n">name</span><span class="p">])</span> <span class="o">==</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">name</span>
+        
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">id</span><span class="p">(</span><span class="nb">locals</span><span class="p">()[</span><span class="n">name</span><span class="p">])</span> <span class="o">==</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">name</span></div>
+    
+<div class="viewcode-block" id="CaseAttr.varstr"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseAttr.varstr">[docs]</a>    <span class="k">def</span> <span class="nf">varstr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the object&#39;s name as a string. Defaults to using its variable name; falls back to using its name property.</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">            * Searches global environment dictionary for objects sharing object&#39;s ID. Returns key if found.</span>
+<span class="sd">            * If none found, searches local environment dictionary for objects sharing object&#39;s ID. Returns key if found.</span>
+<span class="sd">            * If none found, returns object&#39;s name property.</span>
+<span class="sd">            * If name property is None, &#39;none&#39;, or &#39;self&#39;, returns an empty string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_name_str</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="k">if</span> <span class="p">(</span><span class="n">string</span> <span class="o">==</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">string</span> <span class="o">==</span> <span class="s1">&#39;self&#39;</span><span class="p">):</span>
+            
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">obj_name</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                
+        <span class="k">if</span> <span class="p">(</span><span class="n">string</span> <span class="o">==</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">string</span> <span class="o">==</span> <span class="s1">&#39;self&#39;</span><span class="p">):</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            
+        <span class="k">return</span> <span class="n">string</span></div>
+    
+    
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves object attribute using its key.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets object attribute using its key.</span>
+<span class="sd">        </span>
+<span class="sd">        WARNING: will not allow user to set object&#39;s &#39;properties&#39; attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;properties&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span>
+        
+        
+    <span class="k">def</span> <span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes object attribute using its key.</span>
+<span class="sd">        </span>
+<span class="sd">        WARNING: will not allow user to delete object&#39;s &#39;properties&#39; attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;properties&#39;</span><span class="p">:</span>
+            <span class="nb">delattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span>
+    
+
+<div class="viewcode-block" id="CaseAttr.hashable_list"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseAttr.hashable_list">[docs]</a>    <span class="k">def</span> <span class="nf">hashable_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Converts object into a list of strings for hashing. Does not include object properties attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span> <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">!=</span> <span class="n">CaseObjectProperties</span><span class="p">)]</span></div>
+    
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Hashes object. Returns a unique integer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">self_tuple</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hashable_list</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">self_tuple</span><span class="p">)</span>
+
+    <span class="c1"># Methods to convert item to other object types</span>
+    
+<div class="viewcode-block" id="CaseAttr.to_list"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseAttr.to_list">[docs]</a>    <span class="k">def</span> <span class="nf">to_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the object&#39;s attributes as a list. Excludes object properties attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span> <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">!=</span> <span class="n">CaseObjectProperties</span><span class="p">)]</span></div>
+    
+<div class="viewcode-block" id="CaseAttr.to_dict"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseAttr.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the object&#39;s attributes as a dictionary. Excludes object properties attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="s1">&#39;properties&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+            <span class="n">output_dict</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        
+        <span class="k">return</span> <span class="n">output_dict</span></div>
+    
+<div class="viewcode-block" id="CaseAttr.contents"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseAttr.contents">[docs]</a>    <span class="k">def</span> <span class="nf">contents</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the object&#39;s attributes as a list. Excludes object properties attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">contents</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="s1">&#39;properties&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">contents</span></div>
+    
+<div class="viewcode-block" id="CaseAttr.export_folder"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseAttr.export_folder">[docs]</a>    <span class="k">def</span> <span class="nf">export_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder_name</span> <span class="o">=</span> <span class="s1">&#39;obj_name&#39;</span><span class="p">,</span> <span class="n">folder_address</span> <span class="o">=</span> <span class="s1">&#39;request_input&#39;</span><span class="p">,</span> <span class="n">export_str_as</span> <span class="o">=</span> <span class="s1">&#39;txt&#39;</span><span class="p">,</span> <span class="n">export_dict_as</span> <span class="o">=</span> <span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="n">export_pandas_as</span> <span class="o">=</span> <span class="s1">&#39;csv&#39;</span><span class="p">,</span> <span class="n">export_network_as</span> <span class="o">=</span> <span class="s1">&#39;graphML&#39;</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Exports object&#39;s contents to a folder.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        folder_name : str</span>
+<span class="sd">            name of folder to create. Defaults to using the object&#39;s variable name.</span>
+<span class="sd">        folder_address : str</span>
+<span class="sd">            directory address to create folder in. defaults to requesting for user input.</span>
+<span class="sd">        export_str_as : str</span>
+<span class="sd">            file type for exporting string objects. Defaults to &#39;txt&#39;.</span>
+<span class="sd">        export_dict_as : str</span>
+<span class="sd">            file type for exporting dictionary objects. Defaults to &#39;json&#39;.</span>
+<span class="sd">        export_pandas_as : str</span>
+<span class="sd">            file type for exporting Pandas objects. Defaults to &#39;csv&#39;.</span>
+<span class="sd">        export_network_as : str</span>
+<span class="sd">            file type for exporting network objects. Defaults to &#39;graphML&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">obj_to_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder_name</span> <span class="o">=</span> <span class="n">folder_name</span><span class="p">,</span> <span class="n">folder_address</span> <span class="o">=</span> <span class="n">folder_address</span><span class="p">,</span> <span class="n">export_str_as</span> <span class="o">=</span> <span class="n">export_str_as</span><span class="p">,</span> <span class="n">export_dict_as</span> <span class="o">=</span> <span class="n">export_dict_as</span><span class="p">,</span> <span class="n">export_pandas_as</span> <span class="o">=</span> <span class="n">export_pandas_as</span><span class="p">,</span> <span class="n">export_network_as</span> <span class="o">=</span> <span class="n">export_network_as</span><span class="p">)</span></div>
+    
+    
+<div class="viewcode-block" id="CaseAttr.update_properties"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseAttr.update_properties">[docs]</a>    <span class="k">def</span> <span class="nf">update_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates CaseAttr&#39;s properties.</span>
+<span class="sd">        </span>
+<span class="sd">        Updates</span>
+<span class="sd">        -------</span>
+<span class="sd">            * obj_id</span>
+<span class="sd">            * obj_size</span>
+<span class="sd">            * last_changed</span>
+<span class="sd">            * hash</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">obj_id</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">obj_size</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sizeof__</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39; bytes&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">update_last_changed</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">hash</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__hash__</span><span class="p">()</span></div>
+    
+<div class="viewcode-block" id="CaseAttr.get_parent_obj"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseAttr.get_parent_obj">[docs]</a>    <span class="k">def</span> <span class="nf">get_parent_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If the object is an attribute of another object, returns that parent object. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">obj_path</span>
+        <span class="n">parent_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">obj_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="n">parent_path</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="CaseObject"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseObject">[docs]</a><span class="k">class</span> <span class="nc">CaseObject</span><span class="p">(</span><span class="n">CaseAttr</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is a general class of case objects. It is intended for use as a superclass for all case objects.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj_name : str</span>
+<span class="sd">        name for object.</span>
+<span class="sd">    obj_type : str, default : &#39;CaseObject&#39;</span>
+<span class="sd">        type of object.</span>
+<span class="sd">    parent_obj_path : str</span>
+<span class="sd">        if object is an attribute of another object, object path for the parent object. </span>
+<span class="sd">    size : float</span>
+<span class="sd">        size of object in memory.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    properties : CaseObjectProperties</span>
+<span class="sd">        metadata for CaseAttr object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj_name</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">obj_type</span> <span class="o">=</span> <span class="s1">&#39;CaseObject&#39;</span><span class="p">,</span> <span class="n">parent_obj_path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialises CaseObject instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj_name : str</span>
+<span class="sd">            name for object.</span>
+<span class="sd">        obj_type : str, default : &#39;CaseObject&#39;</span>
+<span class="sd">            type of object.</span>
+<span class="sd">        parent_obj_path : str</span>
+<span class="sd">            if object is an attribute of another object, object path for the parent object. </span>
+<span class="sd">        size : float</span>
+<span class="sd">            size of object in memory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># Retrieving methods and attributes from CaseAttr superclass</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">obj_name</span> <span class="o">=</span> <span class="n">obj_name</span><span class="p">,</span> <span class="n">obj_type</span> <span class="o">=</span> <span class="n">obj_type</span><span class="p">,</span> <span class="n">parent_obj_path</span> <span class="o">=</span> <span class="n">parent_obj_path</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="n">size</span><span class="p">)</span>
+    
+    
+<div class="viewcode-block" id="CaseObject.is_in"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseObject.is_in">[docs]</a>    <span class="k">def</span> <span class="nf">is_in</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_set</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if CaseObject is part of an inputted set of objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># Retrieving item ID</span>
+        <span class="n">self_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
+        
+        <span class="c1"># Checking if item ID is in item set</span>
+        <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">object_set</span><span class="p">,</span> <span class="n">self_id</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="CaseObjectSet"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseObjectSet">[docs]</a><span class="k">class</span> <span class="nc">CaseObjectSet</span><span class="p">(</span><span class="n">CaseAttr</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is a collection of CaseObjects.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj_type : str </span>
+<span class="sd">        type of object. Defaults to &#39;CaseObjectSet&#39;.</span>
+<span class="sd">    obj_type : str, default : &#39;CaseObjectSet&#39;</span>
+<span class="sd">        type of object.</span>
+<span class="sd">    parent_obj_path : str</span>
+<span class="sd">        if object is an attribute of another object, object path for the parent object. </span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">        * Subclass of CaseAttr class.</span>
+<span class="sd">        * Intended to used as a superclass for all collections of CaseObjects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj_name</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">obj_type</span> <span class="o">=</span> <span class="s1">&#39;CaseObjectSet&#39;</span><span class="p">,</span> <span class="n">parent_obj_path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialises CaseObjectSet instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj_type : str </span>
+<span class="sd">            type of object. Defaults to &#39;CaseObjectSet&#39;.</span>
+<span class="sd">        obj_type : str, default : &#39;CaseObjectSet&#39;</span>
+<span class="sd">            type of object.</span>
+<span class="sd">        parent_obj_path : str</span>
+<span class="sd">            if object is an attribute of another object, object path for the parent object. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Retrieving methods and attributes from CaseAttr superclass</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">obj_name</span> <span class="o">=</span> <span class="n">obj_name</span><span class="p">,</span> <span class="n">obj_type</span> <span class="o">=</span> <span class="n">obj_type</span><span class="p">,</span> <span class="n">parent_obj_path</span> <span class="o">=</span> <span class="n">parent_obj_path</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the number of objects in the collection. Excludes collection&#39;s &#39;properties&#39; attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="s1">&#39;properties&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="CaseObjectSet.contents"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseObjectSet.contents">[docs]</a>    <span class="k">def</span> <span class="nf">contents</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the collection&#39;s contents. Excludes collection&#39;s &#39;properties&#39; attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="s1">&#39;properties&#39;</span><span class="p">]</span></div>
+    
+<div class="viewcode-block" id="CaseObjectSet.ids"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseObjectSet.ids">[docs]</a>    <span class="k">def</span> <span class="nf">ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the names of all objects in the collection. Excludes collection&#39;s &#39;properties&#39; attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CaseObjectSet.hashable_list"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseObjectSet.hashable_list">[docs]</a>    <span class="k">def</span> <span class="nf">hashable_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Converts collection into a list of strings for hashing. Excludes collection&#39;s &#39;properties&#39; attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span> <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">!=</span> <span class="n">CaseObjectProperties</span><span class="p">)]</span></div>
+    
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Hashes collection. Returns a unique integer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">self_tuple</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hashable_list</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">self_tuple</span><span class="p">)</span>
+
+
+    <span class="c1"># Methods to convert object set to other object types</span>
+    
+<div class="viewcode-block" id="CaseObjectSet.to_list"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseObjectSet.to_list">[docs]</a>    <span class="k">def</span> <span class="nf">to_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the collection as a list.  Excludes collection&#39;s &#39;properties&#39; attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span> <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">!=</span> <span class="n">CaseObjectProperties</span><span class="p">)]</span></div>
+    
+<div class="viewcode-block" id="CaseObjectSet.to_set"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseObjectSet.to_set">[docs]</a>    <span class="k">def</span> <span class="nf">to_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the collection as a set.  Excludes collection&#39;s &#39;properties&#39; attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span></div>
+    
+<div class="viewcode-block" id="CaseObjectSet.to_dict"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseObjectSet.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the collection as a dictionary.  Excludes collection&#39;s &#39;properties&#39; attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">contents</span><span class="p">:</span>
+            <span class="n">output_dict</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        
+        <span class="k">return</span> <span class="n">output_dict</span></div>
+
+<div class="viewcode-block" id="CaseObjectSet.delete_all"><a class="viewcode-back" href="../../../ida.casemanager.html#ida.casemanager.obj_superclasses.CaseObjectSet.delete_all">[docs]</a>    <span class="k">def</span> <span class="nf">delete_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes all objects in collection.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># Retrieving attribute names</span>
+        <span class="n">objects</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">())</span>
+        
+        <span class="c1"># Deleting retrieved names</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
+            <span class="nb">delattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span></div>
+            
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns object in collection using an index or list of indexes.</span>
+<span class="sd">        </span>
+<span class="sd">        Allows for integer slicing, negative indexes, and passing lists as indexes.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : slice, object, str or int</span>
+<span class="sd">            an object slice, attribute (object), attribute name (str), or index position (int).</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        result : CaseObjectSet or CaseObject</span>
+<span class="sd">            the result.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">contents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">contents</span><span class="p">()</span>
+        
+        <span class="n">res</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># Logic for handling index slices</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="nb">slice</span><span class="p">:</span>
+            
+            <span class="c1"># Retrieving start index</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">start</span>
+            
+            <span class="c1"># If none given, starts at first index (0)</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+            
+            <span class="c1"># Raising error if start index isn&#39;t an integer</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span><span class="si">}</span><span class="s1"> slices must be integers&#39;</span><span class="p">)</span>
+            
+            <span class="c1"># If start index is negative, creating start index </span>
+            <span class="c1"># by counting back from size of collection</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span> <span class="o">+</span> <span class="n">start</span>
+            
+            <span class="c1"># Retrieving stop index</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">stop</span>
+            
+            <span class="c1"># If none given, starts at stops at final item in collection</span>
+            <span class="k">if</span> <span class="n">stop</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">stop</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span>
+            
+            <span class="c1"># Raising error if stop index isn&#39;t an integer</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span><span class="si">}</span><span class="s1"> slices must be integers&#39;</span><span class="p">)</span>
+            
+            <span class="c1"># If stop index is negative, creating stop index </span>
+            <span class="c1"># by counting back from size of collection</span>
+            <span class="k">if</span> <span class="n">stop</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">stop</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span> <span class="o">+</span> <span class="n">stop</span>
+            
+            <span class="c1"># Creating new empty collection</span>
+            <span class="n">sliced_set</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">sliced_set</span><span class="o">.</span><span class="n">delete_all</span><span class="p">()</span>
+            
+            <span class="c1"># Iterating through indexes in range; using recursion to add item to sliced collection</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+                <span class="n">entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">entity_id</span> <span class="o">=</span> <span class="n">contents</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">sliced_set</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">entity_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">entity</span>
+            
+            <span class="c1"># Updating sliced collection properties</span>
+            <span class="n">sliced_set</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">entity_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sliced_set</span><span class="p">)</span>
+            
+            <span class="c1"># Returning sliced collection</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">sliced_set</span>
+        
+        <span class="c1"># Logic for integer, string, CaseObject, list, set, and tuple indexes</span>
+        <span class="k">else</span><span class="p">:</span>
+            
+            <span class="c1"># Initialising variable for sub-indexing logic</span>
+            <span class="n">sub_index</span> <span class="o">=</span> <span class="kc">None</span>
+            
+            <span class="c1"># Splitting into index and sub-index if iterable passed</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="n">sub_index</span> <span class="o">=</span> <span class="n">index</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            
+            <span class="c1"># Returning object if the index is a CaseObject or CaseObjectProperties</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="n">index</span>
+            
+            <span class="c1"># For all other types of index</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Returning object if the index is an object key</span>
+                <span class="k">if</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">contents</span><span class="p">:</span>
+                    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            
+                <span class="c1"># Otherwise checking if index is an integer and using to retrieve object key</span>
+                <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>
+                    
+                    <span class="c1"># Raising error if index is out of range</span>
+                    <span class="k">if</span> <span class="n">index</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">contents</span><span class="p">)):</span>
+                        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s1"> is out of range for </span><span class="si">{</span><span class="n">get_var_name_str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    
+                    <span class="c1"># Retrieving key using index; using key to return result</span>
+                    <span class="n">obj</span> <span class="o">=</span> <span class="n">contents</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+            
+            <span class="c1"># If sub-index provided, using indexing to return attribute of result</span>
+            <span class="k">if</span> <span class="n">sub_index</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="n">sub_index</span><span class="p">]</span>
+            
+        <span class="c1"># Checking if no result found</span>
+        <span class="k">if</span> <span class="n">res</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s1">&quot; not found in </span><span class="si">{</span><span class="n">get_var_name_str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">res</span>
+    
+    
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adding object to collection using a key name.</span>
+<span class="sd">        </span>
+<span class="sd">        WARNING: will not allow user to set collection&#39;s &#39;properties&#39; attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;properties&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes object in collection using its key.</span>
+<span class="sd">        </span>
+<span class="sd">        WARNING: will not allow user to delete collection&#39;s &#39;properties&#39; attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;properties&#39;</span><span class="p">:</span>
+            <span class="nb">delattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_properties</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Jamie Hancock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
