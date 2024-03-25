@@ -89,12 +89,6 @@ cd IDEA
 pip install -r requirements.txt
 ```
 
-### **Beginners Guide**
-
-
-<!-- > Read more about sequence-diagrams here: http://bramp.github.io/js-sequence-diagrams/
- -->
-
 ### **Examples**
 
 #### Importing IDEA
@@ -137,6 +131,81 @@ example = idea.open_case(case_name = 'example', file_address = 'example.case')
 example.run_full_analysis()
 print(example.analytics)
 ```
+
+### **Beginners Guide**
+
+##### 1. Install Python (version >=3.9) if it is not yet installed.
+
+Download Python from [here](https://www.python.org/downloads/) or using a tool like [Anaconda](https://www.anaconda.com/).
+
+
+##### 2. Install the repository and dependencies.
+```bash
+
+# In the command line, navigate to the folder you wish to install IDEA in.
+
+gh repo clone J-A-Ha/IDEA
+cd IDEA
+pip install -r requirements.txt
+```
+
+
+##### 3. Run Python and import the package.
+```bash
+python
+```
+
+```python
+import idea
+```
+
+##### 4. Creating a Project.
+```python
+project = idea.Project(project_name = 'project')
+```
+
+##### 5. Adding a Case.
+```python
+
+# Adding a blank case
+project.add_case(case_name = 'example')
+
+# Viewing the case's contents and properties
+project.example
+```
+
+##### 6. Running a limited web crawl and adding results to the case.
+```python
+# visit_limit defines the number of websites to be crawled.
+project.example.from_web_crawl(seed_urls='https://example.com/', visit_limit=5, be_polite=True)
+```
+
+##### 7. Running analyses
+```python
+project.example.parse_rawdata()
+project.example.generate_keywords()
+project.example.infer_all_info_categories()
+project.example.generate_indexes()
+project.example.generate_all_networks()
+project.example.generate_analytics()
+
+# Viewing analytics results
+print(project.example.analytics)
+```
+
+##### 8. Saving the Case
+```python
+project.example.save_as()
+```
+The package will ask for you to input:
+* File name.
+* File type. ('.case' is the recommended format).
+* File path to save to.
+
+
+<!-- > Read more about sequence-diagrams here: http://bramp.github.io/js-sequence-diagrams/
+ -->
+
 
 ### **Key Classes and Functions**
 
@@ -320,23 +389,23 @@ For the full documentation, click [here](./docs/html/index.html).
 
 ## **Authors and acknowledgments**
 
-IDEA was created by Jamie Hancock.
+IDEA was created by [Jamie Hancock](https://github.com/J-A-Ha).
 
 It relies on packages and modules created by:
-* Geocoder: 
-* Geopy:
-* Shodan: 
-* Sherlock: 
-* Instaloader:
-* RPy2
-* ERGM
-* python-whois
-* ipwhois
-* trafilatura
-* Cloudscraper
-* Levenshtein
-* python-whois
-* ipwhois
+* Geocoder: [Denis Carriere](https://github.com/DenisCarriere)
+* Geopy: [Adam Tygart et al.](https://github.com/geopy/geopy/blob/master/AUTHORS)
+* Shodan: [John Matherly](https://github.com/achillean/shodan-python/blob/master/AUTHORS)
+* Sherlock: [Siddharth Dushantha et al.](https://github.com/sherlock-project/sherlock/graphs/contributors)
+* Instaloader: [Alexander Graf et al.](https://github.com/instaloader/instaloader/blob/master/AUTHORS.md)
+* youtube-comment-downloader: [Egbert Bouman](https://github.com/egbertbouman)
+*  youtube-dl: [Ricardo Garcia Gonzalez et al.](https://github.com/ytdl-org/youtube-dl/blob/master/AUTHORS)
+* RPy2: [Laurent Gautier](https://github.com/lgautier)
+* ERGM: [Mark S. Handcock et al.](https://cran.r-project.org/web/packages/ergm/index.html)
+* python-whois: [Richard Penman](https://github.com/richardpenman/)
+* ipwhois: [Phillip Hane](https://pypi.org/project/ipwhois/)
+* Trafilatura: [Adrien Barbaresi](https://github.com/adbar)
+* Cloudscraper: [VeNoMouS](https://github.com/VeNoMouS)
+* Levenshtein: [Max Bachmann](https://github.com/maxbachmann)
 
 
 ## **License**
