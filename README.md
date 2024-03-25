@@ -100,7 +100,7 @@ pip install -r requirements.txt
 #### Importing IDEA
 
 ```python!
-import invdata as idea
+import idea
 ```
 
 #### Creating and saving a case from an Excel file
