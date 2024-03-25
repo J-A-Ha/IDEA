@@ -62,7 +62,9 @@ with open('./idea/datasets/languages/language_codes.txt', 'r') as file:
     language_codes = file.read()
     file.close()
 
-from .stopwords import stopwords
+from .stopwords.stopwords import stopwords_dict as stopwords
+html_stopwords = stopwords['html']
+en_stopwords = stopwords['en']
 
 # Corpus extracted from language_data and langcodes modules. Stored locally for efficiency.
 

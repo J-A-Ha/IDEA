@@ -29,7 +29,7 @@ html_stopwords = list(set(html_stopwords_lower + html_stopwords))
 
 combined = list(set(nltk_stopwords + en_stopwords))
 
-stopwords = {
+stopwords_dict = {
                 'nltk': nltk_stopwords,
                 'en': en_stopwords,
                 'en+nltk': combined,
@@ -37,7 +37,7 @@ stopwords = {
             }
 
 all_stopwords = []
-for key in stopwords.keys():
-    all_stopwords = all_stopwords + stopwords[key]
+for key in stopwords_dict.keys():
+    all_stopwords = all_stopwords + stopwords_dict[key]
 
-stopwords['all'] = all_stopwords
+stopwords_dict['all'] = all_stopwords
