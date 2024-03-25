@@ -10,7 +10,7 @@ title: 'Investigative Data and Evidence Analyser (IDEA)'
 
 # Investigative Data and Evidence Analyser (IDEA)
 
-IDEA is a toolkit for conducting investigations using data. It is written in Python and R.
+The Investigative Data and Evidence Analyser (IDEA) is a toolkit for conducting investigations using data. It is a Python package, written in Python and R.
 
 ## **Table of Contents**
 
