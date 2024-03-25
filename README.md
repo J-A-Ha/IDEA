@@ -18,10 +18,13 @@ IDEA is a toolkit for conducting investigations using data. It is written in Pyt
 
 ## **Description**
 
+IDEA is a toolkit for conducting investigations using data, written in Python and R. It provides a Python package which bundles functionality for case management, item/evidence comparisons, data cleaning, metadata analysis, internet analysis, network analysis, web crawling, and more. IDEA can read and write your results to a large variety of file types (e.g. .xlsx, .csv, .txt, .json, .graphML).
+
 ### **Features**
 
 *Case management*
 * File management
+* Item/evidence analysis and comparisons
 * Object-oriented case management interface
 
 *Data cleaning*
@@ -337,6 +340,14 @@ It relies on packages and modules created by:
 
 
 ## **License**
+
+IDEA is licensed under GPL-3.0.
+
+IDEA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+IDEA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with IDEA. If not, see <https://www.gnu.org/licenses/>. 
 
 
 ## **Appendix and FAQ**
