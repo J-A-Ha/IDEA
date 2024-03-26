@@ -1,1 +1,0 @@
-"""A package for gathering, analysing, and managing data within investigations."""
