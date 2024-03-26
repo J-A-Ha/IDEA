@@ -12,13 +12,16 @@ title: 'Investigative Data and Evidence Analyser (IDEA)'
 
 The Investigative Data and Evidence Analyser (IDEA) is a toolkit for conducting investigations using data. It is a Python package, written in Python and R.
 
+
 ## **Table of Contents**
 
 [TOC]
 
+
 ## **Description**
 
-IDEA is a toolkit for conducting investigations using data, written in Python and R. It provides a Python package which bundles functionality for case management, item/evidence comparisons, data cleaning, metadata analysis, internet analysis, network analysis, web crawling, and more. IDEA can read and write your results to a large variety of file types (e.g. .xlsx, .csv, .txt, .json, .graphML).
+IDEA is a toolkit for conducting investigations using data, written in Python and R. It provides a Python package which bundles functionality for case management, item/evidence comparisons, triangulation, checking for corroboration, data cleaning, metadata analysis, internet analysis, network analysis, web crawling, and more. IDEA can read and write your results to a large variety of file types (e.g. .xlsx, .csv, .txt, .json, .graphML).
+
 
 ### **Features**
 
@@ -80,6 +83,7 @@ IDEA is a toolkit for conducting investigations using data, written in Python an
 
 ## **User Guide**
 
+
 ### **Installation**
 
 To download from GitHub, run the following code in your console:
@@ -89,13 +93,18 @@ cd IDEA
 pip install -r requirements.txt
 ```
 
+Or download as a .zip folder from GitHub.
+
+
 ### **Examples**
+
 
 #### Importing IDEA
 
 ```python!
 import idea
 ```
+
 
 #### Creating and saving a case from an Excel file
 
@@ -131,6 +140,7 @@ example = idea.open_case(case_name = 'example', file_address = 'example.case')
 example.run_full_analysis()
 print(example.analytics)
 ```
+
 
 ### **Beginners Guide**
 
@@ -207,6 +217,7 @@ The package will ask for you to input:
  -->
 
 
+
 ### **Key Classes and Functions**
 
 #### Classes
@@ -217,11 +228,27 @@ class Project(...)
 ```
 A collection of Case objects. See in [docs](./docs/html/ida.casemanager.html?highlight=project#ida.casemanager.projects.Project).
 
+Cases can be selected by:
+1. Entering '<project_name>.<case_name>'
+2. Using subscripting ( '<project_name>["case_name"]')
+3. Using the method .get_case("<case_name>").
+```python!
+project.case
+
+# is the same as
+project['case']
+
+# and
+project.get_case('case')
+```
+
 Key methods:
 * [contents](./docs/html/ida.casemanager.html?highlight=project#ida.casemanager.projects.Project.contents): Returns the Project’s attributes as a list. Excludes object properties attribute.
 * [add_case](./docs/html/ida.casemanager.html?highlight=project#ida.casemanager.projects.Project.add_case): Adds a Case object to the Project.
 * [get_case](./docs/html/ida.casemanager.html?highlight=project#ida.casemanager.projects.Project.get_case): Returns a Case when given its attribute name.
 * [export_folder](./docs/html/ida.casemanager.html?highlight=project#ida.casemanager.projects.Project.export_folder): Exports Project’s contents to a folder.
+* save_as: Exports the Project to file or folder type of your choice.
+* save: Exports the Project to an existing file or folder.
 
 ##### *Case*
 
@@ -241,6 +268,48 @@ Contents:
 * analytics
 * description
 * notes
+
+Case contents can be selected by:
+1. Entering '<case_name>.<attribute_name>'
+2. Using subscripting ( '<case_name>["attribute_name"]')
+3. Using get methods, e.g.:
+    * .get_item("<item_name>").
+    * .get_entity("<entity_name>").
+    * .get_network("<network_name>").
+```python!
+case.attribute
+
+# is the same as
+case['attribute']
+
+```
+Some contents of case attributes can themselves be subscripted:
+```python!
+
+case.get_item('item')
+
+# is the same as
+case.items.item
+
+# and
+case['items'].item
+
+# and
+case['items']['item']
+```
+You can even subscript using the name of a dataframe, item, entity, event, or network:
+```python!
+case['item']
+
+# is the same as
+case.items['item']
+
+# and
+case['items']['item']
+
+# and
+case.get_item('item')
+```
 
 Key methods:
 * [backup](./docs/html/ida.casemanager.html?highlight=case#ida.casemanager.case.Case.backup): Creates backup of the Case.
@@ -279,8 +348,24 @@ Contents:
 * metadata: item metadata
 * information: items' labelled information
 * other: items' links, references, contents, and other miscellaneous data.
-* keywords: keywords associated with the case.
-* coinciding_data: patterns of how data coincides.
+* keywords: keywords associated with the case. A CaseKeywords object containing dataframes:
+    * frequent_words
+    * central_words
+* coinciding_data: patterns of how data coincides. A dictionary containing dataframes.
+
+Dataframes can be selected by:
+1. Entering 'dataframes.<dataframe_name>'
+2. Using subscripting ( 'dataframes["dataframe_name"]')
+3. Using the method .get_dataframe("<dataframe_name>").
+```python!
+case.dataframes.dataframe
+
+# is the same as
+case.dataframes['dataframe']
+
+# and
+dataframe.get_dataframe('dataframe')
+```
 
 ##### *CaseItem*
 ```python!
@@ -288,6 +373,53 @@ class CaseItem(...)
 ```
 An object representing a piece of material or evidence associated with a Case. See in [docs](./docs/html/ida.casemanager.html?highlight=caseitem#ida.casemanager.items.CaseItem).
 
+Contents:
+* properties
+* data
+* metadata
+* information
+* whois
+* links
+* references
+* contains
+* files
+* relations
+* user_assessments
+
+Item contents can be selected by:
+1. Entering '<item_name>.<attribute_name>'
+2. Using subscripting: '<item_name>["<attribute_name>"]'.
+3. Using get methods. E.g.,
+    * .get_data().
+    * .get_metadata()
+    * .get_info()
+```python!
+item.data
+
+# is the same as
+item['data']
+
+# and
+item.get_data()
+```
+
+You can retrieve a CaseItem from a CaseItemSet object by:
+1. Entering 'items.<item_name>'
+2. Subscripting using its name: 'items["<item_name>"]'
+3. Subscripting using a numeric index, in the same style as a list: 'items[index]'
+4. Using the .get_item('<item_name>') method.
+```python!
+items.item
+
+# is the same as
+items['item']
+
+# and (if 0 is the item's index position)
+items[0]
+
+# and 
+items.get_item('item')
+```
 Key methods:
 * [add_metadata](./docs/html/ida.casemanager.html?highlight=case#ida.casemanager.items.CaseItem.add_metadata): Adds single metadata entry to an item’s metadata dataframe.
 * [add_data](./docs/html/ida.casemanager.html?highlight=case#ida.casemanager.items.CaseItem.add_data): Adds single data entry to an item’s data dataframe.
@@ -339,6 +471,22 @@ class CaseFile(CaseObject)
 ```
 An object which stores details about a digital file associated with a case or piece of evidence. See in [docs](./).
 
+Contents:
+* path: the file's filepath in the directory.
+* name: the file's filename.
+* suffix: the file's filetype or extension.
+* type: the type of directory object, i.e. directory, folder, file, etc.
+* absolute: the file's absolute filepath.
+* parent: the filepath of the file's parent directory.
+* root: the filepath of the root directory.
+* and more...
+
+Key functions:
+* get_children
+* listdir
+* walk
+* scandir
+
 #### Functions
 ##### *Case management*
 
@@ -379,6 +527,7 @@ An object which stores details about a digital file associated with a case or pi
 ##### *Social media analysis*
 * [search_username](./docs/html/ida.socmed.html?highlight=search_username#ida.socmed.sherlock_interpreter.search_username): Runs a Sherlock search for a username.
 
+
 ### **Documentation**
 
 For the full documentation, click [here](./docs/html/index.html).
@@ -391,14 +540,14 @@ For the full documentation, click [here](./docs/html/index.html).
 
 IDEA was created by [Jamie Hancock](https://github.com/J-A-Ha).
 
-It relies on packages and modules created by:
+It relies on packages, modules, and datasets created by:
 * Geocoder: [Denis Carriere](https://github.com/DenisCarriere)
 * Geopy: [Adam Tygart et al.](https://github.com/geopy/geopy/blob/master/AUTHORS)
 * Shodan: [John Matherly](https://github.com/achillean/shodan-python/blob/master/AUTHORS)
 * Sherlock: [Siddharth Dushantha et al.](https://github.com/sherlock-project/sherlock/graphs/contributors)
 * Instaloader: [Alexander Graf et al.](https://github.com/instaloader/instaloader/blob/master/AUTHORS.md)
 * youtube-comment-downloader: [Egbert Bouman](https://github.com/egbertbouman)
-*  youtube-dl: [Ricardo Garcia Gonzalez et al.](https://github.com/ytdl-org/youtube-dl/blob/master/AUTHORS)
+* youtube-dl: [Ricardo Garcia Gonzalez et al.](https://github.com/ytdl-org/youtube-dl/blob/master/AUTHORS)
 * RPy2: [Laurent Gautier](https://github.com/lgautier)
 * ERGM: [Mark S. Handcock et al.](https://cran.r-project.org/web/packages/ergm/index.html)
 * python-whois: [Richard Penman](https://github.com/richardpenman/)
@@ -406,6 +555,11 @@ It relies on packages and modules created by:
 * Trafilatura: [Adrien Barbaresi](https://github.com/adbar)
 * Cloudscraper: [VeNoMouS](https://github.com/VeNoMouS)
 * Levenshtein: [Max Bachmann](https://github.com/maxbachmann)
+* names-dataset: [Philippe Remy](https://pypi.org/user/philipperemy/)
+* country_list: [Niels Lemmens](https://pypi.org/user/Niels.Lemmens/)
+* geonamescache: [Ramiro Gómez](https://github.com/yaph), using [GeoNames](http://www.geonames.org/)
+* langcodes: [Elia Robyn Lake (Robyn Speer)](https://github.com/rspeer)
+* language_data: [Elia Robyn Lake (Robyn Speer)](https://github.com/rspeer)
 
 
 ## **License**
